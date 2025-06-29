@@ -1,19 +1,13 @@
 import fetch from 'node-fetch';
 import dotenv from 'dotenv';
-import { MemoryClient } from 'mem0ai';
 
 dotenv.config();
 
-// Initialize Mem0 client
-let mem0;
-try {
-  mem0 = new MemoryClient({
-    apiKey: process.env.MEM0_API_KEY || 'placeholder-key'
-  });
-} catch (error) {
-  console.warn('Mem0 client initialization failed:', error.message);
-  mem0 = null;
-}
+// Mem0 API configuration
+const MEM0_CONFIG = {
+  apiKey: process.env.MEM0_API_KEY,
+  baseUrl: 'https://api.mem0.ai/v1'
+};
 
 // Keywords AI observability configuration
 const KEYWORDS_AI_CONFIG = {
@@ -761,23 +755,34 @@ function getFallbackDocs(techStack) {
 }
 
 /**
- * Store interaction using Mem0
+ * Store interaction using Mem0 HTTP API
  */
 async function storeInteraction(userId, interactionData) {
   try {
-    if (!mem0) {
-      console.log('Mem0 client not available, skipping memory storage');
+    if (!MEM0_CONFIG.apiKey) {
+      console.log('Mem0 API key not available, skipping memory storage');
       return;
     }
 
     const content = `DevPilotAI generated DevOps configuration for ${interactionData.techStack} project. Repository: ${interactionData.repoUrl}. Generated files: ${interactionData.generatedFiles.join(', ')}. Timestamp: ${interactionData.timestamp}`;
     
-    await mem0.add({
-      messages: [{ role: "user", content }],
-      user_id: userId
+    const response = await fetch(`${MEM0_CONFIG.baseUrl}/memories/`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${MEM0_CONFIG.apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        messages: [{ role: "user", content }],
+        user_id: userId
+      })
     });
-    
-    console.log('Interaction stored successfully in Mem0');
+
+    if (response.ok) {
+      console.log('Interaction stored successfully in Mem0');
+    } else {
+      console.warn(`Mem0 storage failed: ${response.status} ${response.statusText}`);
+    }
   } catch (error) {
     console.error('Error storing interaction in Mem0:', error);
     // Don't throw error to avoid breaking the main function
