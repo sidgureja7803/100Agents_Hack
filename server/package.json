@@ -1,0 +1,30 @@
+{
+  "name": "devpilot-ai-backend",
+  "version": "1.0.0",
+  "description": "AI-powered DevOps assistant backend function for generating Dockerfiles, CI/CD workflows, and deployment instructions",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "test": "node test.js",
+    "dev": "node --watch index.js"
+  },
+  "keywords": [
+    "devops",
+    "ai",
+    "docker",
+    "cicd",
+    "github-actions",
+    "appwrite"
+  ],
+  "author": "DevPilotAI",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^3.3.2",
+    "dotenv": "^16.3.1",
+    "mem0ai": "^1.0.4"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+} 
