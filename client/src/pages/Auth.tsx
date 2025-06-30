@@ -161,9 +161,12 @@ export const Auth = () => {
           <div className="w-8 h-8 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-lg flex items-center justify-center animate-gradient">
             <Bot className="h-5 w-5 text-white animate-pulse" />
           </div>
-          <span className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
-            DevPilotAI
-          </span>
+          <div className="flex flex-col">
+            <span className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+              DevPilotAI
+            </span>
+            <span className="text-xs text-slate-500 font-medium">Powered by Appwrite</span>
+          </div>
         </div>
       </div>
 
@@ -180,8 +183,8 @@ export const Auth = () => {
               </CardTitle>
               <CardDescription className="text-slate-600">
                 {activeTab === 'signin' 
-                  ? 'Sign in to access your AI agent dashboard'
-                  : 'Welcome! Please fill in the details to get started.'
+                  ? 'Sign in to access your multi-agent AI dashboard powered by cutting-edge technology'
+                  : 'Join thousands of developers automating DevOps with AI agents'
                 }
               </CardDescription>
             </CardHeader>
