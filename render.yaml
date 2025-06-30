@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: devpilot-ai-backend
+    env: node
+    buildCommand: cd server && npm install
+    startCommand: cd server && node server.js
+    envVars:
+      - key: NODE_VERSION
+        value: 18.0.0
+      - key: NODE_ENV
+        value: production
+    healthCheckPath: /health 

@@ -4,12 +4,14 @@ import { Toaster } from '@/components/ui/toaster';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { AuthProvider, useAuth } from '@/contexts/AuthContext';
+import { GitHubProvider } from '@/contexts/GitHubContext';
 import { Landing } from '@/pages/Landing';
 import { Demo } from '@/pages/Demo';
 import { Auth } from '@/pages/Auth';
 import { NotFound } from '@/pages/NotFound';
 import { EnhancedDashboard } from '@/pages/EnhancedDashboard';
 import { RepoSelection } from '@/pages/RepoSelection';
+import AuthSuccess from '@/pages/AuthSuccess';
 
 // Protected Route Component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -32,17 +34,19 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 function App() {
   return (
-    <AuthProvider>
-      <Router>
-        <Routes>
-          {/* Public Routes - No Auth Required */}
-          <Route element={<PublicLayout><Outlet /></PublicLayout>}>
-            <Route path="/" element={<Landing />} />
-            <Route path="/demo" element={<Demo />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/sign-in/*" element={<Auth />} />
-            <Route path="/sign-up/*" element={<Auth />} />
-          </Route>
+    <GitHubProvider>
+      <AuthProvider>
+        <Router>
+          <Routes>
+            {/* Public Routes - No Auth Required */}
+            <Route element={<PublicLayout><Outlet /></PublicLayout>}>
+              <Route path="/" element={<Landing />} />
+              <Route path="/demo" element={<Demo />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/success" element={<AuthSuccess />} />
+              <Route path="/sign-in/*" element={<Auth />} />
+              <Route path="/sign-up/*" element={<Auth />} />
+            </Route>
 
           {/* Protected Routes - Auth Required */}
           <Route
@@ -67,10 +71,11 @@ function App() {
 
           {/* 404 Route */}
           <Route path="*" element={<NotFound />} />
-        </Routes>
-        <Toaster />
-      </Router>
-    </AuthProvider>
+          </Routes>
+          <Toaster />
+        </Router>
+      </AuthProvider>
+    </GitHubProvider>
   );
 }
 

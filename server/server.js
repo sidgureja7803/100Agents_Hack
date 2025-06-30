@@ -8,6 +8,7 @@ import fs from 'fs-extra';
 import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { runAgentPipeline } from './agents/index.js';
+import GitHubService from './github.js';
 
 dotenv.config();
 
@@ -24,8 +25,39 @@ const PORT = process.env.PORT || 3001;
 const TEMP_DIR = path.join(process.cwd(), 'temp');
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:5173",
+  credentials: true
+}));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// Cookie parser middleware (simple implementation)
+app.use((req, res, next) => {
+  const cookies = {};
+  if (req.headers.cookie) {
+    req.headers.cookie.split(';').forEach(cookie => {
+      const [name, value] = cookie.trim().split('=');
+      cookies[name] = value;
+    });
+  }
+  req.cookies = cookies;
+  
+  // Add cookie setter to response
+  res.cookie = (name, value, options = {}) => {
+    let cookieStr = `${name}=${value}`;
+    if (options.httpOnly) cookieStr += '; HttpOnly';
+    if (options.maxAge) cookieStr += `; Max-Age=${options.maxAge / 1000}`;
+    if (options.path) cookieStr += `; Path=${options.path}`;
+    res.setHeader('Set-Cookie', cookieStr);
+  };
+  
+  res.clearCookie = (name) => {
+    res.setHeader('Set-Cookie', `${name}=; Max-Age=0`);
+  };
+  
+  next();
+});
 
 // Ensure temp directory exists
 await fs.ensureDir(TEMP_DIR);
@@ -55,28 +87,234 @@ app.get('/health', (req, res) => {
   res.json({ status: 'healthy', timestamp: new Date().toISOString() });
 });
 
+// GitHub OAuth Routes
+
+// Initiate GitHub OAuth
+app.get('/auth/github', (req, res) => {
+  try {
+    const state = uuidv4(); // CSRF protection
+    const authUrl = GitHubService.getAuthURL(state);
+    
+    // Store state in session or temporary storage (in production, use proper session management)
+    res.cookie('oauth_state', state, { httpOnly: true, maxAge: 600000 }); // 10 minutes
+    
+    res.json({ authUrl });
+  } catch (error) {
+    console.error('GitHub OAuth initiation error:', error);
+    res.status(500).json({ error: 'Failed to initiate GitHub authentication' });
+  }
+});
+
+// GitHub OAuth callback
+app.get('/auth/github/callback', async (req, res) => {
+  try {
+    const { code, state } = req.query;
+    const storedState = req.cookies?.oauth_state;
+    
+    // Verify state to prevent CSRF attacks
+    if (!state || state !== storedState) {
+      return res.status(400).redirect(`${process.env.CLIENT_URL}/auth?error=invalid_state`);
+    }
+    
+    // Exchange code for access token
+    const accessToken = await GitHubService.getAccessToken(code);
+    
+    // Get user information
+    const userInfo = await GitHubService.getUserInfo(accessToken);
+    
+    // Generate JWT token
+    const jwtToken = GitHubService.generateJWT({
+      id: userInfo.id,
+      login: userInfo.login,
+      name: userInfo.name,
+      email: userInfo.email,
+      avatarUrl: userInfo.avatar_url,
+      accessToken: accessToken
+    });
+    
+    // Clear OAuth state cookie
+    res.clearCookie('oauth_state');
+    
+    // Redirect to frontend with JWT token
+    res.redirect(`${process.env.CLIENT_URL}/auth/success?token=${jwtToken}`);
+    
+  } catch (error) {
+    console.error('GitHub OAuth callback error:', error);
+    res.redirect(`${process.env.CLIENT_URL}/auth?error=github_auth_failed`);
+  }
+});
+
+// Get user repositories
+app.get('/api/github/repositories', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const token = authHeader.substring(7);
+    const userData = GitHubService.verifyJWT(token);
+    const { page = 1, per_page = 50, type = 'all' } = req.query;
+    
+    // Get user repositories
+    const repositories = await GitHubService.getUserRepositories(
+      userData.accessToken, 
+      parseInt(page), 
+      parseInt(per_page)
+    );
+    
+    // Get organizations
+    const organizations = await GitHubService.getUserOrganizations(userData.accessToken);
+    
+    res.json({
+      user: {
+        login: userData.login,
+        name: userData.name,
+        avatarUrl: userData.avatarUrl
+      },
+      repositories,
+      organizations,
+      pagination: {
+        page: parseInt(page),
+        per_page: parseInt(per_page),
+        has_more: repositories.length === parseInt(per_page)
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get repositories error:', error);
+    if (error.message === 'Invalid token') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    res.status(500).json({ error: 'Failed to fetch repositories' });
+  }
+});
+
+// Get organization repositories
+app.get('/api/github/organizations/:org/repositories', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const token = authHeader.substring(7);
+    const userData = GitHubService.verifyJWT(token);
+    const { org } = req.params;
+    const { page = 1, per_page = 50 } = req.query;
+    
+    const repositories = await GitHubService.getOrgRepositories(
+      userData.accessToken, 
+      org, 
+      parseInt(page), 
+      parseInt(per_page)
+    );
+    
+    res.json({
+      organization: org,
+      repositories,
+      pagination: {
+        page: parseInt(page),
+        per_page: parseInt(per_page),
+        has_more: repositories.length === parseInt(per_page)
+      }
+    });
+    
+  } catch (error) {
+    console.error('Get org repositories error:', error);
+    if (error.message === 'Invalid token') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    res.status(500).json({ error: 'Failed to fetch organization repositories' });
+  }
+});
+
+// Verify user access to repository
+app.post('/api/github/verify-repo', async (req, res) => {
+  try {
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: 'Authentication required' });
+    }
+    
+    const token = authHeader.substring(7);
+    const userData = GitHubService.verifyJWT(token);
+    const { owner, repo } = req.body;
+    
+    if (!owner || !repo) {
+      return res.status(400).json({ error: 'Owner and repository name are required' });
+    }
+    
+    const accessResult = await GitHubService.checkRepoAccess(userData.accessToken, owner, repo);
+    
+    res.json(accessResult);
+    
+  } catch (error) {
+    console.error('Verify repo access error:', error);
+    if (error.message === 'Invalid token') {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+    res.status(500).json({ error: 'Failed to verify repository access' });
+  }
+});
+
 // Clone repository endpoint
 app.post('/api/clone-repo', async (req, res) => {
   try {
-    const { repoUrl, authToken } = req.body;
+    const { repoUrl, authToken, repositoryData } = req.body;
+    let finalRepoUrl = repoUrl;
+    let repoName = '';
     
-    if (!repoUrl) {
-      return res.status(400).json({ error: 'Repository URL is required' });
+    // Handle authenticated GitHub repository selection
+    if (repositoryData) {
+      // User selected from their GitHub repositories
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith('Bearer ')) {
+        return res.status(401).json({ error: 'Authentication required for private repositories' });
+      }
+      
+      const token = authHeader.substring(7);
+      const userData = GitHubService.verifyJWT(token);
+      
+      finalRepoUrl = repositoryData.cloneUrl;
+      repoName = repositoryData.name;
+      
+      // Use authenticated clone URL for private repos
+      if (repositoryData.private) {
+        finalRepoUrl = repositoryData.cloneUrl.replace('https://', `https://${userData.accessToken}@`);
+      }
+    } else if (repoUrl) {
+      // Manual URL input
+      if (!repoUrl) {
+        return res.status(400).json({ error: 'Repository URL is required' });
+      }
+      
+      // Validate GitHub URL
+      const githubUrlPattern = /^https:\/\/github\.com\/[\w\-\.]+\/[\w\-\.]+(?:\.git)?$/;
+      if (!githubUrlPattern.test(repoUrl)) {
+        return res.status(400).json({ error: 'Invalid GitHub repository URL' });
+      }
+      
+      repoName = repoUrl.split('/').pop().replace('.git', '');
+      
+      // Add authentication if provided
+      if (authToken) {
+        finalRepoUrl = repoUrl.replace('https://', `https://${authToken}@`);
+      }
+    } else {
+      return res.status(400).json({ error: 'Repository URL or repository data is required' });
     }
     
-    // Validate GitHub URL
-    const githubUrlPattern = /^https:\/\/github\.com\/[\w\-\.]+\/[\w\-\.]+(?:\.git)?$/;
-    if (!githubUrlPattern.test(repoUrl)) {
-      return res.status(400).json({ error: 'Invalid GitHub repository URL' });
+    if (!repoName) {
+      repoName = finalRepoUrl.split('/').pop().replace('.git', '');
     }
     
     const sessionId = uuidv4();
-    const repoName = repoUrl.split('/').pop().replace('.git', '');
     const clonePath = path.join(TEMP_DIR, sessionId, repoName);
     
     // Create session
     activeSessions.set(sessionId, {
-      repoUrl,
+      repoUrl: finalRepoUrl,
       repoName,
       clonePath,
       status: 'cloning',
@@ -93,13 +331,8 @@ app.post('/api/clone-repo', async (req, res) => {
     const git = simpleGit();
     const cloneOptions = {};
     
-    // Add authentication if provided
-    if (authToken) {
-      const authenticatedUrl = repoUrl.replace('https://', `https://${authToken}@`);
-      await git.clone(authenticatedUrl, clonePath, cloneOptions);
-    } else {
-      await git.clone(repoUrl, clonePath, cloneOptions);
-    }
+    // Clone using the final repository URL (with authentication if needed)
+    await git.clone(finalRepoUrl, clonePath, cloneOptions);
     
     // Update session status
     const session = activeSessions.get(sessionId);

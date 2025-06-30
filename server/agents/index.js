@@ -1,15 +1,72 @@
-import { StateGraph, END } from '@langchain/langgraph';
-import { ChatOpenAI } from '@langchain/openai';
-import { HumanMessage, SystemMessage } from '@langchain/core/messages';
 import fs from 'fs-extra';
 import path from 'path';
 
-// Initialize OpenAI model
-const model = new ChatOpenAI({
-  modelName: 'gpt-4-turbo-preview',
-  temperature: 0.1,
-  openAIApiKey: process.env.OPENAI_API_KEY,
-});
+// Custom Llama API client for Novita.ai
+class LlamaClient {
+  constructor() {
+    this.baseURL = "https://api.novita.ai/v3/openai";
+    this.apiKey = process.env.LLAMA_API_KEY;
+    this.model = "meta-llama/llama-3-70b-instruct";
+  }
+
+  async invoke(messages) {
+    try {
+      const formattedMessages = messages.map(msg => ({
+        role: msg._getType() === 'system' ? 'system' : 'user',
+        content: msg.content
+      }));
+
+      const response = await fetch(`${this.baseURL}/chat/completions`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${this.apiKey}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: this.model,
+          messages: formattedMessages,
+          temperature: 0.1,
+          max_tokens: 4000,
+          response_format: { type: "text" }
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`Llama API Error: ${response.status} ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      return {
+        content: data.choices[0].message.content
+      };
+    } catch (error) {
+      console.error('Llama API Error:', error);
+      throw error;
+    }
+  }
+}
+
+// Initialize Llama model
+const model = new LlamaClient();
+
+// Message classes for compatibility
+class SystemMessage {
+  constructor(content) {
+    this.content = content;
+  }
+  _getType() {
+    return 'system';
+  }
+}
+
+class HumanMessage {
+  constructor(content) {
+    this.content = content;
+  }
+  _getType() {
+    return 'human';
+  }
+}
 
 // Agent state interface
 class AgentState {
@@ -34,8 +91,7 @@ const plannerAgent = async (state) => {
   state.currentStep = 'Planning project analysis';
   state.progress = 20;
   
-  const plannerPrompt = `
-You are a DevOps Planning Agent. Your task is to analyze the repository structure and create a comprehensive plan.
+  const plannerPrompt = `You are a DevOps Planning Agent. Your task is to analyze the repository structure and create a comprehensive plan.
 
 Repository URL: ${state.repoUrl}
 Repository structure has been cloned to: ${state.repoPath}
@@ -46,8 +102,7 @@ Based on typical project patterns, create a plan that includes:
 3. Dependencies to check
 4. Deployment strategy recommendations
 
-Return a JSON plan with these categories.
-`;
+Return a JSON plan with these categories.`;
 
   try {
     const response = await model.invoke([
@@ -112,8 +167,7 @@ const generatorAgent = async (state) => {
   state.currentStep = 'Generating CI/CD configurations';
   state.progress = 80;
   
-  const generatorPrompt = `
-You are a DevOps Generation Agent. Based on the codebase analysis, generate production-ready files.
+  const generatorPrompt = `You are a DevOps Generation Agent. Based on the codebase analysis, generate production-ready files.
 
 Tech Stack: ${JSON.stringify(state.techStack, null, 2)}
 Project Structure: ${JSON.stringify(state.projectStructure, null, 2)}
@@ -124,8 +178,7 @@ Generate the following files with best practices:
 2. GitHub Actions Workflow - Complete CI/CD pipeline
 3. .env.example - All required environment variables
 
-For each file, provide the complete content optimized for this specific project.
-`;
+For each file, provide the complete content optimized for this specific project.`;
 
   try {
     // Generate Dockerfile
@@ -172,8 +225,7 @@ const verifierAgent = async (state) => {
   state.currentStep = 'Validating generated configurations';
   state.progress = 95;
   
-  const verifierPrompt = `
-You are a DevOps Verification Agent. Review the generated files for:
+  const verifierPrompt = `You are a DevOps Verification Agent. Review the generated files for:
 1. Syntax correctness
 2. Security best practices
 3. Performance optimizations
@@ -184,8 +236,7 @@ Generated Files:
 - GitHub Actions: ${state.generatedFiles.githubActions?.substring(0, 500)}...
 - .env.example: ${state.generatedFiles.envExample?.substring(0, 500)}...
 
-Provide verification results and any recommendations for improvements.
-`;
+Provide verification results and any recommendations for improvements.`;
 
   try {
     const response = await model.invoke([
@@ -199,7 +250,7 @@ Provide verification results and any recommendations for improvements.
     
     state.messages.push({
       agent: 'verifier',
-      message: 'Validation complete - all files verified',
+      message: 'Validation complete - files are production ready',
       timestamp: new Date().toISOString()
     });
     
@@ -215,28 +266,28 @@ async function scanProjectStructure(repoPath) {
   const structure = {};
   
   const scanDirectory = async (dirPath, relativePath = '') => {
-    const items = await fs.readdir(dirPath);
-    
-    for (const item of items) {
-      const fullPath = path.join(dirPath, item);
-      const itemRelativePath = path.join(relativePath, item);
+    try {
+      const items = await fs.readdir(dirPath);
       
-      // Skip node_modules, .git, and other common ignore patterns
-      if (item.startsWith('.') && item !== '.env.example' && item !== '.gitignore') continue;
-      if (item === 'node_modules' || item === 'vendor' || item === '__pycache__') continue;
-      
-      const stat = await fs.stat(fullPath);
-      
-      if (stat.isDirectory()) {
-        structure[itemRelativePath] = { type: 'directory', items: {} };
-        await scanDirectory(fullPath, itemRelativePath);
-      } else {
-        structure[itemRelativePath] = { 
-          type: 'file', 
-          size: stat.size,
-          extension: path.extname(item)
-        };
+      for (const item of items) {
+        // Skip common directories that we don't need to analyze
+        if (['.git', 'node_modules', '.next', 'dist', 'build', '__pycache__'].includes(item)) {
+          continue;
+        }
+        
+        const fullPath = path.join(dirPath, item);
+        const itemRelativePath = path.join(relativePath, item);
+        const stats = await fs.stat(fullPath);
+        
+        if (stats.isDirectory()) {
+          structure[itemRelativePath] = 'directory';
+          await scanDirectory(fullPath, itemRelativePath);
+        } else {
+          structure[itemRelativePath] = 'file';
+        }
       }
+    } catch (error) {
+      console.error(`Error scanning directory ${dirPath}:`, error.message);
     }
   };
   
@@ -246,149 +297,124 @@ async function scanProjectStructure(repoPath) {
 
 // Helper function to analyze tech stack
 async function analyzeTechStack(repoPath, projectFiles) {
-  const analysis = {
+  const techStack = {
     primary: 'unknown',
-    frontend: [],
-    backend: [],
-    database: [],
-    deployment: [],
-    languages: [],
+    secondary: [],
     frameworks: [],
-    confidence: 0
+    databases: [],
+    tools: []
   };
   
-  // Check for common files that indicate tech stack
-  const files = Object.keys(projectFiles);
+  const fileNames = Object.keys(projectFiles);
   
-  // Package managers and language indicators
-  if (files.includes('package.json')) {
+  // Check for common tech stack indicators
+  if (fileNames.includes('package.json')) {
+    techStack.primary = 'node';
     try {
-      const packageJson = await fs.readJSON(path.join(repoPath, 'package.json'));
-      const deps = { ...packageJson.dependencies, ...packageJson.devDependencies };
-      
-      if (deps.react) analysis.frontend.push('React');
-      if (deps.vue) analysis.frontend.push('Vue.js');
-      if (deps.angular) analysis.frontend.push('Angular');
-      if (deps.express) analysis.backend.push('Express.js');
-      if (deps.fastify) analysis.backend.push('Fastify');
-      if (deps.next) analysis.frameworks.push('Next.js');
-      if (deps.typescript) analysis.languages.push('TypeScript');
-      
-      analysis.languages.push('JavaScript');
-      analysis.primary = 'Node.js';
+      const packageJson = await fs.readJson(path.join(repoPath, 'package.json'));
+      if (packageJson.dependencies) {
+        if (packageJson.dependencies.react) techStack.frameworks.push('react');
+        if (packageJson.dependencies.next) techStack.frameworks.push('nextjs');
+        if (packageJson.dependencies.vue) techStack.frameworks.push('vue');
+        if (packageJson.dependencies.express) techStack.frameworks.push('express');
+        if (packageJson.dependencies.mongoose) techStack.databases.push('mongodb');
+        if (packageJson.dependencies.pg) techStack.databases.push('postgresql');
+      }
     } catch (error) {
-      console.warn('Could not parse package.json:', error.message);
+      console.error('Error reading package.json:', error.message);
     }
+  } else if (fileNames.includes('requirements.txt') || fileNames.includes('pyproject.toml')) {
+    techStack.primary = 'python';
+    if (fileNames.includes('manage.py')) techStack.frameworks.push('django');
+    if (fileNames.some(f => f.includes('flask'))) techStack.frameworks.push('flask');
+    if (fileNames.some(f => f.includes('fastapi'))) techStack.frameworks.push('fastapi');
+  } else if (fileNames.includes('go.mod')) {
+    techStack.primary = 'go';
+  } else if (fileNames.includes('Cargo.toml')) {
+    techStack.primary = 'rust';
+  } else if (fileNames.includes('pom.xml') || fileNames.includes('build.gradle')) {
+    techStack.primary = 'java';
+    if (fileNames.some(f => f.includes('spring'))) techStack.frameworks.push('spring');
   }
   
-  if (files.includes('requirements.txt') || files.includes('pyproject.toml')) {
-    analysis.primary = 'Python';
-    analysis.languages.push('Python');
-    
-    if (files.includes('manage.py')) analysis.frameworks.push('Django');
-    if (files.includes('app.py') || files.includes('main.py')) analysis.frameworks.push('Flask/FastAPI');
-  }
+  // Check for containerization
+  if (fileNames.includes('Dockerfile')) techStack.tools.push('docker');
+  if (fileNames.includes('docker-compose.yml')) techStack.tools.push('docker-compose');
+  if (fileNames.includes('kubernetes') || fileNames.some(f => f.endsWith('.yaml'))) techStack.tools.push('kubernetes');
   
-  if (files.includes('go.mod')) {
-    analysis.primary = 'Go';
-    analysis.languages.push('Go');
-  }
-  
-  if (files.includes('Cargo.toml')) {
-    analysis.primary = 'Rust';
-    analysis.languages.push('Rust');
-  }
-  
-  if (files.includes('pom.xml') || files.includes('build.gradle')) {
-    analysis.primary = 'Java';
-    analysis.languages.push('Java');
-    if (files.includes('pom.xml')) analysis.frameworks.push('Maven');
-    if (files.includes('build.gradle')) analysis.frameworks.push('Gradle');
-  }
-  
-  // Database indicators
-  if (files.some(f => f.includes('docker-compose'))) {
-    analysis.deployment.push('Docker Compose');
-  }
-  
-  if (files.includes('Dockerfile')) {
-    analysis.deployment.push('Docker');
-  }
-  
-  return analysis;
+  return techStack;
 }
 
 // Helper function for detailed analysis
 async function performDetailedAnalysis(repoPath, projectFiles) {
   const analysis = {
-    fileCount: Object.keys(projectFiles).length,
-    directories: Object.values(projectFiles).filter(f => f.type === 'directory').length,
-    totalSize: Object.values(projectFiles).reduce((sum, f) => sum + (f.size || 0), 0),
-    keyFiles: [],
+    entryPoints: [],
     configFiles: [],
-    hasTests: false,
-    hasDocumentation: false,
-    hasCICD: false
+    buildCommands: [],
+    testCommands: [],
+    dependencies: {},
+    recommendations: []
   };
   
-  const files = Object.keys(projectFiles);
+  const fileNames = Object.keys(projectFiles);
   
-  // Identify key files
-  const keyPatterns = [
-    'package.json', 'requirements.txt', 'go.mod', 'Cargo.toml',
-    'Dockerfile', 'docker-compose.yml', '.github/workflows',
-    'README.md', 'LICENSE', '.gitignore'
-  ];
+  // Find entry points
+  if (fileNames.includes('package.json')) {
+    try {
+      const packageJson = await fs.readJson(path.join(repoPath, 'package.json'));
+      if (packageJson.main) analysis.entryPoints.push(packageJson.main);
+      if (packageJson.scripts) {
+        if (packageJson.scripts.start) analysis.buildCommands.push('npm start');
+        if (packageJson.scripts.build) analysis.buildCommands.push('npm run build');
+        if (packageJson.scripts.test) analysis.testCommands.push('npm test');
+      }
+      analysis.dependencies = packageJson.dependencies || {};
+    } catch (error) {
+      console.error('Error analyzing package.json:', error.message);
+    }
+  }
   
-  analysis.keyFiles = files.filter(file => 
-    keyPatterns.some(pattern => file.includes(pattern))
-  );
+  // Check for common config files
+  const configFiles = ['tsconfig.json', 'webpack.config.js', 'vite.config.js', '.env.example', 'docker-compose.yml'];
+  analysis.configFiles = fileNames.filter(f => configFiles.includes(f));
   
-  // Check for tests
-  analysis.hasTests = files.some(file => 
-    file.includes('test') || file.includes('spec') || file.includes('__tests__')
-  );
-  
-  // Check for documentation
-  analysis.hasDocumentation = files.some(file => 
-    file.toLowerCase().includes('readme') || file.toLowerCase().includes('docs')
-  );
-  
-  // Check for existing CI/CD
-  analysis.hasCICD = files.some(file => 
-    file.includes('.github/workflows') || file.includes('.gitlab-ci') || file.includes('Jenkinsfile')
-  );
+  // Generate recommendations
+  if (!fileNames.includes('Dockerfile')) {
+    analysis.recommendations.push('Add Dockerfile for containerization');
+  }
+  if (!fileNames.includes('.github/workflows')) {
+    analysis.recommendations.push('Add GitHub Actions for CI/CD');
+  }
+  if (!fileNames.includes('.env.example')) {
+    analysis.recommendations.push('Add .env.example for environment configuration');
+  }
   
   return analysis;
 }
 
-// Create the multi-agent workflow
+// Simplified workflow implementation without langgraph
 export function createAgentWorkflow() {
-  const workflow = new StateGraph();
-  
-  // Add nodes
-  workflow.addNode('planner', plannerAgent);
-  workflow.addNode('analyzer', analyzerAgent);
-  workflow.addNode('generator', generatorAgent);
-  workflow.addNode('verifier', verifierAgent);
-  
-  // Define the flow
-  workflow.addEdge('planner', 'analyzer');
-  workflow.addEdge('analyzer', 'generator');
-  workflow.addEdge('generator', 'verifier');
-  workflow.addEdge('verifier', END);
-  
-  // Set entry point
-  workflow.setEntryPoint('planner');
-  
-  return workflow.compile();
+  return {
+    async invoke(initialState) {
+      let state = initialState;
+      
+      // Run agents in sequence
+      state = await plannerAgent(state);
+      state = await analyzerAgent(state);
+      state = await generatorAgent(state);
+      state = await verifierAgent(state);
+      
+      return state;
+    }
+  };
 }
 
 // Main function to run the agent pipeline
 export async function runAgentPipeline(repoUrl, repoPath, progressCallback = null) {
+  console.log('🚀 Starting AI Agent Pipeline...');
+  
   const workflow = createAgentWorkflow();
   const initialState = new AgentState();
-  
   initialState.repoUrl = repoUrl;
   initialState.repoPath = repoPath;
   
@@ -400,13 +426,16 @@ export async function runAgentPipeline(repoUrl, repoPath, progressCallback = nul
         step: result.currentStep,
         progress: result.progress,
         messages: result.messages,
+        techStack: result.techStack,
+        generatedFiles: result.generatedFiles,
         errors: result.errors
       });
     }
     
+    console.log('✅ AI Agent Pipeline completed successfully');
     return result;
   } catch (error) {
-    console.error('Agent pipeline failed:', error);
+    console.error('❌ AI Agent Pipeline failed:', error);
     throw error;
   }
 }
