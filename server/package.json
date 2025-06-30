@@ -4,9 +4,12 @@
   "description": "AI-powered DevOps assistant backend function for generating Dockerfiles, CI/CD workflows, and deployment instructions",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
+    "start": "node server.js",
+    "start:legacy": "node index.js",
     "test": "node test.js",
-    "dev": "node --watch index.js"
+    "dev": "node --watch server.js",
+    "dev:legacy": "node --watch index.js",
+    "install-deps": "npm install"
   },
   "keywords": [
     "devops",
@@ -20,7 +23,18 @@
   "license": "MIT",
   "dependencies": {
     "dotenv": "^16.3.1",
-    "node-fetch": "^3.3.2"
+    "node-fetch": "^3.3.2",
+    "simple-git": "^3.20.0",
+    "langchain": "^0.1.0",
+    "@langchain/openai": "^0.0.14",
+    "langgraph": "^0.0.26",
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4",
+    "cors": "^2.8.5",
+    "fs-extra": "^11.2.0",
+    "path": "^0.12.7",
+    "uuid": "^9.0.1",
+    "openai": "^4.20.1"
   },
   "type": "module",
   "engines": {

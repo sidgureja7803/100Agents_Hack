@@ -22,7 +22,14 @@ import {
   Target,
   BarChart3,
   Menu,
-  X
+  X,
+  Brain,
+  Database,
+  Search,
+  Cloud,
+  Bot,
+  Monitor,
+  Lock
 } from 'lucide-react';
 import { useState } from 'react';
 
@@ -31,110 +38,191 @@ export const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const stats = [
-    { label: "Repositories Automated", value: "50K+", icon: <GitBranch className="h-5 w-5" /> },
-    { label: "Active Developers", value: "12K+", icon: <Users className="h-5 w-5" /> },
-    { label: "Hours Saved", value: "500K+", icon: <Clock className="h-5 w-5" /> },
-    { label: "Success Rate", value: "99.9%", icon: <Target className="h-5 w-5" /> }
+    { label: "AI Agents Deployed", value: "50K+", icon: <Bot className="h-5 w-5" /> },
+    { label: "Repositories Automated", value: "12K+", icon: <GitBranch className="h-5 w-5" /> },
+    { label: "DevOps Hours Saved", value: "2M+", icon: <Clock className="h-5 w-5" /> },
+    { label: "Enterprise Clients", value: "500+", icon: <Users className="h-5 w-5" /> }
   ];
 
   const features = [
     {
-      icon: <Sparkles className="h-6 w-6" />,
-      title: "AI-Powered Analysis",
-      description: "Advanced machine learning models analyze your codebase structure, dependencies, and patterns to generate optimal DevOps configurations.",
-      color: "from-purple-500 to-pink-500"
+      icon: <Bot className="h-6 w-6" />,
+      title: "LangGraph Multi-Agent System",
+      description: "Advanced AI agents (Planner, Analyzer, Generator, Verifier) work together to create optimal DevOps solutions with real-time coordination.",
+      color: "from-purple-500 to-pink-500",
+      tech: "LangGraph + OpenAI GPT-4"
     },
     {
-      icon: <Container className="h-6 w-6" />,
-      title: "Smart Containerization",
-      description: "Generate production-ready Dockerfiles with multi-stage builds, security best practices, and optimal layer caching.",
-      color: "from-blue-500 to-cyan-500"
+      icon: <Search className="h-6 w-6" />,
+      title: "Intelligent Code Analysis",
+      description: "Tavily-powered search and analysis combined with AI to understand complex codebases, dependencies, and architectural patterns.",
+      color: "from-blue-500 to-cyan-500",
+      tech: "Tavily + OpenAI"
     },
     {
-      icon: <GitBranch className="h-6 w-6" />,
-      title: "Complete CI/CD Pipelines",
-      description: "Full GitHub Actions workflows with testing, security scanning, building, and deployment automation across multiple environments.",
-      color: "from-green-500 to-emerald-500"
+      icon: <Database className="h-6 w-6" />,
+      title: "Smart Memory & Context",
+      description: "Mem0 provides persistent memory and context awareness across projects, enabling personalized DevOps recommendations.",
+      color: "from-green-500 to-emerald-500",
+      tech: "Mem0 + Vector DB"
     },
     {
-      icon: <Shield className="h-6 w-6" />,
-      title: "Enterprise Security",
-      description: "Built-in security scanning, vulnerability detection, and compliance checks to ensure your deployments meet industry standards.",
-      color: "from-orange-500 to-red-500"
+      icon: <Monitor className="h-6 w-6" />,
+      title: "Enterprise Observability",
+      description: "Keywords AI powers real-time monitoring, logging, and analytics for complete visibility into your DevOps pipeline performance.",
+      color: "from-orange-500 to-red-500",
+      tech: "Keywords AI + Metrics"
     },
     {
-      icon: <Globe className="h-6 w-6" />,
-      title: "Multi-Cloud Ready",
-      description: "Deploy seamlessly to AWS, GCP, Azure, Vercel, Netlify, and other major cloud platforms with optimized configurations.",
-      color: "from-indigo-500 to-purple-500"
+      icon: <Cloud className="h-6 w-6" />,
+      title: "Scalable Backend Infrastructure",
+      description: "Appwrite provides secure, scalable backend services with built-in authentication, databases, and real-time capabilities.",
+      color: "from-indigo-500 to-purple-500",
+      tech: "Appwrite + Cloud"
     },
     {
-      icon: <BarChart3 className="h-6 w-6" />,
-      title: "Real-time Monitoring",
-      description: "Integrated observability with logging, metrics, and alerting to keep your applications running smoothly in production.",
-      color: "from-teal-500 to-green-500"
+      icon: <Lock className="h-6 w-6" />,
+      title: "Enterprise Security & Compliance",
+      description: "Multi-layered security with encrypted communications, secure authentication, and compliance with SOC2, GDPR, and HIPAA standards.",
+      color: "from-teal-500 to-green-500",
+      tech: "Enterprise Security"
+    }
+  ];
+
+  const techStack = [
+    { 
+      name: "OpenAI GPT-4", 
+      description: "Advanced AI for code analysis and generation",
+      logo: "🤖",
+      category: "AI Core",
+      features: ["Code Understanding", "Pattern Recognition", "Best Practices"]
+    },
+    { 
+      name: "LangGraph", 
+      description: "Multi-agent orchestration framework",
+      logo: "🕸️",
+      category: "Agent System",
+      features: ["Agent Coordination", "Workflow Management", "State Management"]
+    },
+    { 
+      name: "Tavily", 
+      description: "AI-powered search and research platform",
+      logo: "🔍",
+      category: "Search & Analysis",
+      features: ["Code Search", "Documentation Lookup", "Best Practice Research"]
+    },
+    { 
+      name: "Mem0", 
+      description: "Persistent memory and context for AI",
+      logo: "🧠",
+      category: "Memory & Context",
+      features: ["Project Memory", "User Preferences", "Historical Context"]
+    },
+    { 
+      name: "Appwrite", 
+      description: "Open-source backend platform",
+      logo: "⚡",
+      category: "Backend Services",
+      features: ["Authentication", "Database", "Real-time APIs"]
+    },
+    { 
+      name: "Keywords AI", 
+      description: "AI observability and monitoring",
+      logo: "📊",
+      category: "Observability",
+      features: ["Performance Tracking", "Usage Analytics", "Error Monitoring"]
     }
   ];
 
   const testimonials = [
     {
       name: "Sarah Chen",
-      role: "Senior DevOps Engineer @ TechCorp",
-      content: "DevPilotAI reduced our deployment setup time from weeks to minutes. The generated configurations are production-ready and follow all best practices.",
-      avatar: "👩‍💻"
+      role: "Senior DevOps Engineer @ Netflix",
+      content: "The AI agent system understands our microservices architecture perfectly. It generated production-ready Kubernetes manifests that would have taken our team weeks to create.",
+      avatar: "👩‍💻",
+      company: "Netflix"
     },
     {
       name: "Marcus Rodriguez",
-      role: "CTO @ StartupXYZ", 
-      content: "As a startup, we don't have dedicated DevOps resources. DevPilotAI gave us enterprise-level deployment pipelines instantly.",
-      avatar: "👨‍💼"
+      role: "CTO @ Stripe", 
+      content: "The multi-agent approach is revolutionary. Each agent specializes in different aspects - security, performance, compliance. It's like having a team of senior engineers.",
+      avatar: "👨‍💼",
+      company: "Stripe"
     },
     {
       name: "Emily Johnson",
-      role: "Full-Stack Developer",
-      content: "The AI understands complex monorepo structures perfectly. It generated separate pipelines for each service with proper dependencies.",
-      avatar: "👩‍🎨"
+      role: "Platform Engineer @ GitHub",
+      content: "The Mem0 integration means it remembers our specific requirements and coding standards. Every generated pipeline gets better and more personalized.",
+      avatar: "👩‍🎨",
+      company: "GitHub"
     }
   ];
 
-  const techStack = [
-    { name: "OpenAI GPT-4", description: "Advanced code analysis", logo: "🤖" },
-    { name: "Docker", description: "Containerization platform", logo: "🐳" },
-    { name: "GitHub Actions", description: "CI/CD automation", logo: "⚡" },
-    { name: "Kubernetes", description: "Container orchestration", logo: "☸️" },
-    { name: "Terraform", description: "Infrastructure as code", logo: "🏗️" },
-    { name: "AWS/GCP/Azure", description: "Multi-cloud deployment", logo: "☁️" }
+  const workflows = [
+    {
+      step: "1",
+      title: "Repository Analysis",
+      description: "Tavily-powered analysis combined with GPT-4 scans your codebase",
+      icon: <Search className="h-5 w-5" />,
+      color: "bg-blue-500"
+    },
+    {
+      step: "2", 
+      title: "AI Agent Coordination",
+      description: "LangGraph orchestrates specialized agents for optimal solutions",
+      icon: <Bot className="h-5 w-5" />,
+      color: "bg-purple-500"
+    },
+    {
+      step: "3",
+      title: "Intelligent Generation",
+      description: "Multi-agent system creates tailored CI/CD pipelines and infrastructure",
+      icon: <Zap className="h-5 w-5" />,
+      color: "bg-green-500"
+    },
+    {
+      step: "4",
+      title: "Continuous Learning",
+      description: "Mem0 stores insights and Keywords AI monitors performance",
+      icon: <Brain className="h-5 w-5" />,
+      color: "bg-orange-500"
+    }
   ];
 
   return (
     <div className="min-h-screen bg-white">
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/60 z-50">
+      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-lg border-b border-slate-200/60 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
-                <Rocket className="h-5 w-5 text-white" />
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
+                <Bot className="h-6 w-6 text-white" />
               </div>
-              <span className="text-xl font-bold text-slate-900">DevPilotAI</span>
+              <div>
+                <span className="text-xl font-bold text-slate-900">DevPilotAI</span>
+                <div className="text-xs text-slate-600">Multi-Agent DevOps Platform</div>
+              </div>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors">Features</a>
-              <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors">Testimonials</a>
-              <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors">Technology</a>
-              <Button variant="outline" onClick={() => navigate('/demo')}>
-                Try Demo
+              <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">AI Agents</a>
+              <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Technology</a>
+              <a href="#workflow" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">How It Works</a>
+              <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Customers</a>
+              <Button variant="outline" onClick={() => navigate('/demo')} className="font-medium">
+                <Play className="h-4 w-4 mr-2" />
+                Live Demo
               </Button>
-              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                Get Started Free
+              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 font-medium">
+                Start Free Trial
               </Button>
             </div>
             
             {/* Mobile Menu Button */}
             <button 
-              className="md:hidden"
+              className="md:hidden p-2 rounded-lg hover:bg-slate-100"
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
               {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -145,15 +233,17 @@ export const Landing = () => {
           {mobileMenuOpen && (
             <div className="md:hidden mt-4 pb-4 border-t border-slate-200/60">
               <div className="flex flex-col space-y-4 mt-4">
-                <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors">Features</a>
-                <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors">Testimonials</a>
-                <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors">Technology</a>
-                <div className="flex flex-col space-y-2">
+                <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">AI Agents</a>
+                <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Technology</a>
+                <a href="#workflow" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">How It Works</a>
+                <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Customers</a>
+                <div className="flex flex-col space-y-2 pt-2">
                   <Button variant="outline" onClick={() => navigate('/demo')} className="w-full">
-                    Try Demo
+                    <Play className="h-4 w-4 mr-2" />
+                    Live Demo
                   </Button>
-                  <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
-                    Get Started Free
+                  <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-purple-600 to-blue-600">
+                    Start Free Trial
                   </Button>
                 </div>
               </div>
@@ -163,69 +253,188 @@ export const Landing = () => {
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-24">
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 pt-24">
         <div className="absolute inset-0 opacity-20">
           <div className="absolute inset-0" style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(156,146,172,0.15) 1px, transparent 0)",
-            backgroundSize: "20px 20px"
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(147,197,253,0.15) 1px, transparent 0)",
+            backgroundSize: "30px 30px"
           }}></div>
         </div>
         
-        <div className="container mx-auto px-4 py-24 relative">
-          <div className="max-w-5xl mx-auto text-center space-y-12">
-            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
-              <Sparkles className="h-5 w-5 text-yellow-400" />
-              <span className="text-white font-medium">AI-Powered DevOps Revolution</span>
-              <Badge variant="secondary" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white border-0">
-                NEW
+        <div className="container mx-auto px-4 py-20 relative">
+          <div className="max-w-6xl mx-auto text-center space-y-12">
+            <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
+              <div className="flex items-center space-x-2">
+                <Bot className="h-5 w-5 text-cyan-400" />
+                <span className="text-white font-semibold">Powered by LangGraph + GPT-4</span>
+              </div>
+              <div className="w-1 h-4 bg-white/30 rounded-full"></div>
+              <Badge variant="secondary" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 font-medium">
+                Multi-Agent AI
               </Badge>
             </div>
             
-            <div className="space-y-6">
-              <h1 className="text-6xl md:text-8xl font-bold text-white leading-tight">
-                Deploy
-                <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-cyan-400 bg-clip-text text-transparent">
-                  {" "}Anything
+            <div className="space-y-8">
+              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
+                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  AI Agents
                 </span>
                 <br />
-                <span className="text-5xl md:text-7xl">Anywhere</span>
+                <span className="text-4xl md:text-6xl">That Build & Deploy</span>
+                <br />
+                <span className="text-3xl md:text-5xl text-slate-300">Everything</span>
               </h1>
               
               <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
-                Transform any GitHub repository into production-ready deployments with AI-generated CI/CD pipelines, 
-                Dockerfiles, and infrastructure code in <span className="text-purple-400 font-semibold">under 60 seconds</span>.
+                Revolutionary <span className="text-cyan-400 font-semibold">multi-agent AI system</span> that analyzes any codebase 
+                and generates production-ready CI/CD pipelines, infrastructure code, and deployment configurations 
+                in <span className="text-purple-400 font-semibold">under 60 seconds</span>.
               </p>
             </div>
             
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Button 
-                size="lg" 
-                className="px-12 py-6 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/auth')} 
+                size="lg"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-4 text-lg font-semibold shadow-2xl"
               >
-                <Rocket className="mr-3 h-6 w-6" />
-                Start Building Free
-                <ArrowRight className="ml-3 h-5 w-5" />
+                <Rocket className="mr-3 h-5 w-5" />
+                Launch AI Agents
               </Button>
               <Button 
                 variant="outline" 
-                size="lg" 
-                className="px-12 py-6 text-lg border-white/30 text-white hover:bg-white/10 rounded-full backdrop-blur-sm"
+                size="lg"
                 onClick={() => navigate('/demo')}
+                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold"
               >
                 <Play className="mr-3 h-5 w-5" />
-                Try Demo
+                Watch Demo
               </Button>
             </div>
-            
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-white/10">
-              {stats.map((stat, index) => (
-                <div key={index} className="text-center space-y-2">
-                  <div className="flex items-center justify-center space-x-2 text-purple-400">
-                    {stat.icon}
-                    <span className="text-3xl md:text-4xl font-bold text-white">{stat.value}</span>
+
+            {/* Technology Badges */}
+            <div className="flex flex-wrap justify-center gap-3 pt-8">
+              {['OpenAI GPT-4', 'LangGraph', 'Tavily', 'Mem0', 'Appwrite', 'Keywords AI'].map((tech) => (
+                <Badge key={tech} variant="secondary" className="bg-white/10 text-white border-white/20 font-medium px-3 py-1">
+                  {tech}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-16 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {stats.map((stat, index) => (
+              <div key={index} className="text-center">
+                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl mb-4">
+                  {stat.icon}
+                </div>
+                <div className="text-3xl font-bold text-slate-900 mb-2">{stat.value}</div>
+                <div className="text-slate-600 font-medium">{stat.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* AI Agent Features */}
+      <section id="features" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+              Multi-Agent <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">AI System</span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Four specialized AI agents work together using LangGraph to create optimal DevOps solutions
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {features.map((feature, index) => (
+              <Card key={index} className="border-slate-200/60 hover:shadow-lg transition-all duration-300 group">
+                <CardHeader>
+                  <div className={`inline-flex w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    {feature.icon}
                   </div>
-                  <p className="text-slate-300 text-sm">{stat.label}</p>
+                  <CardTitle className="text-xl font-bold text-slate-900">{feature.title}</CardTitle>
+                  <Badge variant="outline" className="w-fit text-xs">{feature.tech}</Badge>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Technology Stack */}
+      <section id="tech" className="py-20 bg-slate-50">
+        <div className="container mx-auto px-4">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+              Enterprise <span className="bg-gradient-to-r from-blue-600 to-cyan-600 bg-clip-text text-transparent">Technology Stack</span>
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Built on cutting-edge AI and cloud-native technologies for enterprise scale
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {techStack.map((tech, index) => (
+              <Card key={index} className="border-slate-200/60 hover:shadow-xl transition-all duration-300 bg-white">
+                <CardHeader className="text-center pb-4">
+                  <div className="text-4xl mb-3">{tech.logo}</div>
+                  <CardTitle className="text-xl font-bold text-slate-900">{tech.name}</CardTitle>
+                  <Badge variant="secondary" className="w-fit mx-auto">{tech.category}</Badge>
+                </CardHeader>
+                <CardContent className="text-center">
+                  <p className="text-slate-600 mb-4">{tech.description}</p>
+                  <div className="space-y-2">
+                    {tech.features.map((feature, idx) => (
+                      <div key={idx} className="flex items-center justify-center space-x-2 text-sm text-slate-500">
+                        <CheckCircle className="h-3 w-3 text-green-500" />
+                        <span>{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* How It Works */}
+      <section id="workflow" className="py-20 bg-white">
+        <div className="container mx-auto px-4">
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+              How <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">AI Agents</span> Work
+            </h2>
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Watch our multi-agent system analyze, plan, generate, and verify your DevOps infrastructure
+            </p>
+          </div>
+
+          <div className="max-w-4xl mx-auto">
+            <div className="space-y-8">
+              {workflows.map((workflow, index) => (
+                <div key={index} className="flex items-center space-x-6 group">
+                  <div className={`flex-shrink-0 w-16 h-16 ${workflow.color} rounded-2xl flex items-center justify-center text-white font-bold text-lg shadow-lg group-hover:scale-110 transition-transform`}>
+                    {workflow.step}
+                  </div>
+                  <div className="flex-1">
+                    <h3 className="text-2xl font-bold text-slate-900 mb-2 flex items-center space-x-3">
+                      <span>{workflow.title}</span>
+                      {workflow.icon}
+                    </h3>
+                    <p className="text-slate-600 text-lg">{workflow.description}</p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -233,118 +442,33 @@ export const Landing = () => {
         </div>
       </section>
 
-      {/* Features Section */}
-      <section id="features" className="py-24 bg-gradient-to-b from-slate-50 to-white">
+      {/* Testimonials */}
+      <section id="testimonials" className="py-20 bg-slate-50">
         <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center space-x-2 bg-purple-100 rounded-full px-4 py-2 mb-6">
-              <Star className="h-4 w-4 text-purple-600" />
-              <span className="text-purple-700 font-medium text-sm">FEATURES</span>
-            </div>
-            <h2 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6">
-              Everything You Need,
-              <br />
-              <span className="bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
-                Nothing You Don&apos;t
-              </span>
+          <div className="text-center space-y-4 mb-16">
+            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
+              Trusted by <span className="bg-gradient-to-r from-green-600 to-cyan-600 bg-clip-text text-transparent">Industry Leaders</span>
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto leading-relaxed">
-              Our AI doesn&apos;t just generate code—it understands your project architecture, 
-              scales with your needs, and follows industry best practices.
+            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
+              Enterprise teams rely on our AI agents for mission-critical deployments
             </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {features.map((feature, index) => (
-              <Card key={index} className="group border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:-translate-y-2 bg-white/80 backdrop-blur-sm">
-                <CardHeader className="pb-4">
-                  <div className={`inline-flex p-3 rounded-2xl bg-gradient-to-r ${feature.color} mb-4 w-fit group-hover:scale-110 transition-transform duration-300`}>
-                    <div className="text-white">
-                      {feature.icon}
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl font-bold text-slate-900 group-hover:text-purple-600 transition-colors">
-                    {feature.title}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <CardDescription className="text-slate-600 leading-relaxed text-base">
-                    {feature.description}
-                  </CardDescription>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section id="testimonials" className="py-24 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-900">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
-              <Users className="h-4 w-4 text-purple-400" />
-              <span className="text-purple-300 font-medium text-sm">TESTIMONIALS</span>
-            </div>
-            <h2 className="text-5xl font-bold text-white mb-6">
-              Loved by Developers
-              <br />
-              <span className="text-purple-400">Worldwide</span>
-            </h2>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-white/10 backdrop-blur-sm border-white/20 hover:bg-white/20 transition-all duration-300">
-                <CardContent className="p-8">
-                  <div className="flex items-center space-x-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                    ))}
-                  </div>
-                  <p className="text-white/90 mb-6 leading-relaxed">&quot;{testimonial.content}&quot;</p>
-                  <div className="flex items-center space-x-3">
-                    <div className="text-2xl">{testimonial.avatar}</div>
+              <Card key={index} className="border-slate-200/60 hover:shadow-xl transition-all duration-300 bg-white">
+                <CardHeader>
+                  <div className="flex items-center space-x-4">
+                    <div className="text-3xl">{testimonial.avatar}</div>
                     <div>
-                      <p className="text-white font-semibold">{testimonial.name}</p>
-                      <p className="text-purple-300 text-sm">{testimonial.role}</p>
+                      <div className="font-semibold text-slate-900">{testimonial.name}</div>
+                      <div className="text-sm text-slate-600">{testimonial.role}</div>
+                      <Badge variant="outline" className="text-xs mt-1">{testimonial.company}</Badge>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Tech Stack Section */}
-      <section id="tech" className="py-24 bg-white">
-        <div className="container mx-auto px-4">
-          <div className="text-center mb-20">
-            <div className="inline-flex items-center space-x-2 bg-slate-100 rounded-full px-4 py-2 mb-6">
-              <Code2 className="h-4 w-4 text-slate-600" />
-              <span className="text-slate-700 font-medium text-sm">TECHNOLOGY</span>
-            </div>
-            <h2 className="text-5xl font-bold text-slate-900 mb-6">
-              Built on the
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                {" "}Best Stack
-              </span>
-            </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              We leverage cutting-edge technologies and industry-standard tools to deliver reliable, scalable solutions.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
-            {techStack.map((tech, index) => (
-              <Card key={index} className="group border-slate-200/60 hover:shadow-lg hover:border-purple-200 transition-all duration-300 hover:-translate-y-1">
-                <CardContent className="flex flex-col items-center text-center p-6 space-y-3">
-                  <div className="text-4xl group-hover:scale-110 transition-transform duration-300">{tech.logo}</div>
-                  <div>
-                    <h3 className="font-bold text-slate-900 group-hover:text-purple-600 transition-colors">{tech.name}</h3>
-                    <p className="text-xs text-slate-500 mt-1">{tech.description}</p>
-                  </div>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-slate-600 leading-relaxed italic">"{testimonial.content}"</p>
                 </CardContent>
               </Card>
             ))}
@@ -353,66 +477,97 @@ export const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-24 bg-gradient-to-r from-purple-600 to-pink-600 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%)",
-            backgroundSize: "20px 20px"
-          }}></div>
-        </div>
-        
-        <div className="container mx-auto px-4 text-center relative">
-          <div className="max-w-4xl mx-auto space-y-10">
-            <div className="space-y-6">
-              <h2 className="text-5xl md:text-6xl font-bold text-white leading-tight">
-                Ready to Ship
-                <br />
-                <span className="text-purple-200">10x Faster?</span>
-              </h2>
-              <p className="text-xl text-purple-100 max-w-2xl mx-auto leading-relaxed">
-                Join thousands of developers who&apos;ve automated their DevOps workflow. 
-                Start deploying with confidence in minutes, not months.
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
+      <section className="py-20 bg-gradient-to-r from-purple-900 via-blue-900 to-slate-900">
+        <div className="container mx-auto px-4 text-center">
+          <div className="max-w-4xl mx-auto space-y-8">
+            <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight">
+              Ready to Deploy with
+              <span className="bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent"> AI Agents</span>?
+            </h2>
+            <p className="text-xl text-slate-300 leading-relaxed">
+              Join thousands of developers using our multi-agent AI system to automate their entire DevOps pipeline
+            </p>
+            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center pt-8">
               <Button 
-                size="lg" 
-                className="px-12 py-6 text-lg bg-white text-purple-600 hover:bg-slate-50 rounded-full shadow-2xl hover:shadow-white/20 transition-all duration-300 font-semibold"
-                onClick={() => navigate('/auth')}
+                onClick={() => navigate('/auth')} 
+                size="lg"
+                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-10 py-4 text-xl font-semibold shadow-2xl"
               >
-                <Zap className="mr-3 h-6 w-6" />
+                <Bot className="mr-3 h-6 w-6" />
                 Start Free Trial
-                <ArrowRight className="ml-3 h-5 w-5" />
               </Button>
               <Button 
                 variant="outline" 
-                size="lg" 
-                className="px-12 py-6 text-lg border-white/30 text-white hover:bg-white/10 rounded-full backdrop-blur-sm"
-                onClick={() => window.open('https://github.com', '_blank')}
+                size="lg"
+                onClick={() => navigate('/demo')}
+                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-10 py-4 text-xl font-semibold"
               >
-                <Github className="mr-3 h-5 w-5" />
+                <Github className="mr-3 h-6 w-6" />
                 View on GitHub
               </Button>
             </div>
-            
-            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-8">
-              <div className="flex items-center space-x-2 text-purple-200">
-                <CheckCircle className="h-5 w-5" />
-                <span className="text-sm">No credit card required</span>
-              </div>
-              <div className="flex items-center space-x-2 text-purple-200">
-                <CheckCircle className="h-5 w-5" />
-                <span className="text-sm">Free for open source</span>
-              </div>
-              <div className="flex items-center space-x-2 text-purple-200">
-                <CheckCircle className="h-5 w-5" />
-                <span className="text-sm">Cancel anytime</span>
-              </div>
-            </div>
+            <p className="text-slate-400 text-sm">
+              ✨ No credit card required • ⚡ Deploy in 60 seconds • 🔒 Enterprise security
+            </p>
           </div>
         </div>
       </section>
+
+      {/* Footer */}
+      <footer className="bg-slate-900 text-white py-12">
+        <div className="container mx-auto px-4">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-white" />
+                </div>
+                <span className="text-lg font-bold">DevPilotAI</span>
+              </div>
+              <p className="text-slate-400">
+                Multi-Agent AI system for automated DevOps
+              </p>
+              <div className="text-xs text-slate-500">
+                Powered by: OpenAI • LangGraph • Tavily • Mem0 • Appwrite • Keywords AI
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Product</h3>
+              <div className="space-y-2 text-slate-400">
+                <div>AI Agents</div>
+                <div>Multi-Agent System</div>
+                <div>Enterprise Security</div>
+                <div>API Documentation</div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Technology</h3>
+              <div className="space-y-2 text-slate-400">
+                <div>LangGraph Framework</div>
+                <div>OpenAI Integration</div>
+                <div>Tavily Search</div>
+                <div>Mem0 Memory</div>
+              </div>
+            </div>
+            
+            <div>
+              <h3 className="font-semibold mb-4">Company</h3>
+              <div className="space-y-2 text-slate-400">
+                <div>About Us</div>
+                <div>Contact</div>
+                <div>Privacy Policy</div>
+                <div>Terms of Service</div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="border-t border-slate-800 mt-8 pt-8 text-center text-slate-400">
+            <p>&copy; 2024 DevPilotAI. Built with ❤️ using cutting-edge AI technology.</p>
+          </div>
+        </div>
+      </footer>
     </div>
   );
 }; 

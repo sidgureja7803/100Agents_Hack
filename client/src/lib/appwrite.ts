@@ -1,4 +1,4 @@
-import { Account, Client, ID, OAuthProvider } from 'appwrite';
+import { Account, Client, ID } from 'appwrite';
 
 // Appwrite configuration
 const APPWRITE_ENDPOINT = import.meta.env.VITE_APPWRITE_ENDPOINT || 'https://cloud.appwrite.io/v1';
@@ -34,7 +34,7 @@ export class AuthService {
   // Login with OAuth (Google)
   static async loginWithGoogle(): Promise<void> {
     try {
-      account.createOAuth2Session(OAuthProvider.Google, 
+      account.createOAuth2Session('google', 
         `${window.location.origin}/dashboard`, // Success URL
         `${window.location.origin}/login`      // Failure URL
       );
@@ -47,7 +47,7 @@ export class AuthService {
   // Login with OAuth (GitHub)
   static async loginWithGitHub(): Promise<void> {
     try {
-      account.createOAuth2Session(OAuthProvider.Github, 
+      account.createOAuth2Session('github', 
         `${window.location.origin}/dashboard`, // Success URL
         `${window.location.origin}/login`      // Failure URL
       );
@@ -60,7 +60,7 @@ export class AuthService {
   // Login with email and password
   static async loginWithEmail(email: string, password: string): Promise<User> {
     try {
-      await account.createEmailPasswordSession(email, password);
+      await account.createEmailSession(email, password);
       return await account.get();
     } catch (error) {
       console.error('Email login failed:', error);
