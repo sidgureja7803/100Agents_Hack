@@ -80,11 +80,12 @@ export const RepositorySelector: React.FC<RepositorySelectorProps> = ({
     setError(null);
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
       const endpoint = orgName 
         ? `/api/github/organizations/${orgName}/repositories?page=${page}&per_page=20`
         : `/api/github/repositories?page=${page}&per_page=20`;
 
-      const response = await fetch(`http://localhost:3001${endpoint}`, {
+      const response = await fetch(`${apiUrl}${endpoint}`, {
         headers: {
           'Authorization': `Bearer ${userToken}`,
           'Content-Type': 'application/json'

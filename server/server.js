@@ -500,6 +500,61 @@ app.get('/api/files/:sessionId', async (req, res) => {
   }
 });
 
+// Download individual file endpoint
+app.get('/api/files/:sessionId/:filename', async (req, res) => {
+  try {
+    const { sessionId, filename } = req.params;
+    
+    if (!sessionId || !activeSessions.has(sessionId)) {
+      return res.status(400).json({ error: 'Invalid session ID' });
+    }
+    
+    const session = activeSessions.get(sessionId);
+    
+    if (session.status !== 'completed' || !session.analysisResult) {
+      return res.status(400).json({ error: 'Analysis not completed' });
+    }
+    
+    const { generatedFiles } = session.analysisResult;
+    
+    if (!generatedFiles[filename]) {
+      return res.status(404).json({ error: 'File not found' });
+    }
+    
+    const fileContent = generatedFiles[filename];
+    const contentType = getContentType(filename);
+    
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Type', contentType);
+    res.send(fileContent);
+    
+  } catch (error) {
+    console.error('File download error:', error);
+    res.status(500).json({
+      error: 'Failed to download file',
+      message: error.message
+    });
+  }
+});
+
+// Helper function to determine content type
+function getContentType(filename) {
+  const extension = filename.split('.').pop()?.toLowerCase();
+  switch (extension) {
+    case 'yml':
+    case 'yaml':
+      return 'application/x-yaml';
+    case 'json':
+      return 'application/json';
+    case 'md':
+      return 'text/markdown';
+    case 'dockerfile':
+      return 'text/plain';
+    default:
+      return 'text/plain';
+  }
+}
+
 // Get session status endpoint
 app.get('/api/status/:sessionId', (req, res) => {
   try {

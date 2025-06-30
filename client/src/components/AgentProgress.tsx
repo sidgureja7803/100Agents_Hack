@@ -17,6 +17,7 @@ import {
   ExternalLink,
   Loader2
 } from 'lucide-react';
+import { io, Socket } from 'socket.io-client';
 
 interface AgentMessage {
   agent: string;
@@ -35,6 +36,7 @@ interface AgentProgressProps {
   generatedFiles?: string[];
   onComplete?: (result: any) => void;
   onError?: (error: string) => void;
+  onProgressUpdate?: (data: any) => void;
 }
 
 const WORKFLOW_STEPS = [
@@ -85,10 +87,55 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
   techStack,
   generatedFiles = [],
   onComplete,
-  onError
+  onError,
+  onProgressUpdate
 }) => {
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
   const [showDetails, setShowDetails] = useState(false);
+  const [socket, setSocket] = useState<Socket | null>(null);
+  const [localMessages, setLocalMessages] = useState<AgentMessage[]>(messages);
+  const [localErrors, setLocalErrors] = useState<string[]>(errors);
+  const [localTechStack, setLocalTechStack] = useState(techStack);
+  const [localGeneratedFiles, setLocalGeneratedFiles] = useState<string[]>(generatedFiles);
+
+  // Initialize Socket.IO connection
+  useEffect(() => {
+    const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const newSocket = io(serverUrl);
+    
+    newSocket.on('connect', () => {
+      console.log('🔗 Connected to DevPilotAI server');
+    });
+
+    newSocket.on('disconnect', () => {
+      console.log('❌ Disconnected from DevPilotAI server');
+    });
+
+    // Listen for progress updates
+    newSocket.on('progress', (data) => {
+      if (sessionId && data.sessionId === sessionId) {
+        console.log('📡 Progress update received:', data);
+        
+        // Update local state
+        if (data.messages) setLocalMessages(data.messages);
+        if (data.errors) setLocalErrors(data.errors);
+        if (data.techStack) setLocalTechStack(data.techStack);
+        if (data.generatedFiles) setLocalGeneratedFiles(data.generatedFiles);
+        
+        // Call parent update handler
+        if (onProgressUpdate) {
+          onProgressUpdate(data);
+        }
+      }
+    });
+
+    setSocket(newSocket);
+
+    // Cleanup on unmount
+    return () => {
+      newSocket.disconnect();
+    };
+  }, [sessionId, onProgressUpdate]);
 
   useEffect(() => {
     // Update current step index based on progress
@@ -101,11 +148,15 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
 
   useEffect(() => {
     if (status === 'completed' && onComplete) {
-      onComplete({ techStack, generatedFiles, messages });
-    } else if (status === 'failed' && onError && errors.length > 0) {
-      onError(errors[0]);
+      onComplete({ 
+        techStack: localTechStack, 
+        generatedFiles: localGeneratedFiles, 
+        messages: localMessages 
+      });
+    } else if (status === 'failed' && onError && localErrors.length > 0) {
+      onError(localErrors[0]);
     }
-  }, [status, onComplete, onError, techStack, generatedFiles, messages, errors]);
+  }, [status, onComplete, onError, localTechStack, localGeneratedFiles, localMessages, localErrors]);
 
   const getStepStatus = (stepIndex: number) => {
     if (stepIndex < currentStepIndex) return 'completed';
@@ -138,6 +189,43 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
         return 'border-gray-200 bg-gray-50';
     }
   };
+
+  const handleDownloadFiles = async () => {
+    if (!sessionId) return;
+    
+    try {
+      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const response = await fetch(`${serverUrl}/api/files/${sessionId}`);
+      
+      if (!response.ok) {
+        throw new Error('Failed to fetch generated files');
+      }
+      
+      const data = await response.json();
+      
+      // Create downloadable files
+      const files = data.files;
+      Object.entries(files).forEach(([filename, content]) => {
+        const blob = new Blob([content as string], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+    }
+  };
+
+  // Use local state that gets updated via WebSocket, fallback to props
+  const displayMessages = localMessages.length > 0 ? localMessages : messages;
+  const displayErrors = localErrors.length > 0 ? localErrors : errors;
+  const displayTechStack = localTechStack || techStack;
+  const displayGeneratedFiles = localGeneratedFiles.length > 0 ? localGeneratedFiles : generatedFiles;
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-lg">
@@ -216,14 +304,14 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
         </div>
 
         {/* Error Display */}
-        {errors.length > 0 && (
+        {displayErrors.length > 0 && (
           <div className="bg-red-50 border border-red-200 rounded-lg p-4">
             <div className="flex items-center space-x-2 mb-2">
               <AlertCircle className="h-5 w-5 text-red-600" />
               <h3 className="font-medium text-red-900">Errors Detected</h3>
             </div>
             <div className="space-y-1">
-              {errors.map((error, index) => (
+              {displayErrors.map((error, index) => (
                 <p key={index} className="text-sm text-red-700">{error}</p>
               ))}
             </div>
@@ -231,7 +319,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
         )}
 
         {/* Agent Messages */}
-        {showDetails && messages.length > 0 && (
+        {showDetails && displayMessages.length > 0 && (
           <div className="space-y-3">
             <h3 className="font-medium text-gray-900 flex items-center space-x-2">
               <Bot className="h-4 w-4" />
@@ -239,7 +327,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
             </h3>
             <ScrollArea className="h-48 w-full border rounded-lg p-3">
               <div className="space-y-3">
-                {messages.map((message, index) => (
+                {displayMessages.map((message, index) => (
                   <div key={index} className="flex items-start space-x-3">
                     <Badge variant="outline" className="text-xs">
                       {message.agent}
@@ -258,26 +346,26 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
         )}
 
         {/* Tech Stack Detection */}
-        {techStack && showDetails && (
+        {displayTechStack && showDetails && (
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
             <h3 className="font-medium text-blue-900 mb-2">🔍 Detected Tech Stack</h3>
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <span className="font-medium">Primary:</span> {techStack.primary}
+                <span className="font-medium">Primary:</span> {displayTechStack.primary}
               </div>
-              {techStack.frontend?.length > 0 && (
+              {displayTechStack.frameworks?.length > 0 && (
                 <div>
-                  <span className="font-medium">Frontend:</span> {techStack.frontend.join(', ')}
+                  <span className="font-medium">Frameworks:</span> {displayTechStack.frameworks.join(', ')}
                 </div>
               )}
-              {techStack.backend?.length > 0 && (
+              {displayTechStack.tools?.length > 0 && (
                 <div>
-                  <span className="font-medium">Backend:</span> {techStack.backend.join(', ')}
+                  <span className="font-medium">Tools:</span> {displayTechStack.tools.join(', ')}
                 </div>
               )}
-              {techStack.languages?.length > 0 && (
+              {displayTechStack.databases?.length > 0 && (
                 <div>
-                  <span className="font-medium">Languages:</span> {techStack.languages.join(', ')}
+                  <span className="font-medium">Databases:</span> {displayTechStack.databases.join(', ')}
                 </div>
               )}
             </div>
@@ -285,14 +373,14 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
         )}
 
         {/* Generated Files */}
-        {generatedFiles.length > 0 && (
+        {displayGeneratedFiles.length > 0 && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4">
             <h3 className="font-medium text-green-900 mb-2 flex items-center space-x-2">
               <CheckCircle className="h-4 w-4" />
               <span>Generated Files</span>
             </h3>
             <div className="flex flex-wrap gap-2">
-              {generatedFiles.map((file, index) => (
+              {displayGeneratedFiles.map((file, index) => (
                 <Badge key={index} variant="secondary" className="bg-green-100 text-green-800">
                   {file}
                 </Badge>
@@ -316,7 +404,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
           
           {status === 'completed' && (
             <div className="flex space-x-2">
-              <Button size="sm" variant="outline">
+              <Button size="sm" variant="outline" onClick={handleDownloadFiles}>
                 <Download className="h-4 w-4 mr-2" />
                 Download Files
               </Button>
