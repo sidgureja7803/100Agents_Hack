@@ -5,11 +5,14 @@ services:
     env: node
     buildCommand: cd server && npm install
     startCommand: cd server && node server.js
+    plan: free
     envVars:
       - key: NODE_VERSION
         value: 18.0.0
       - key: NODE_ENV
         value: production
+      - key: PORT
+        value: 10000
     healthCheckPath: /health
 
   # Frontend Static Site
@@ -18,6 +21,7 @@ services:
     env: static
     buildCommand: cd client && npm install && npm run build
     staticPublishPath: ./client/dist
+    plan: free
     routes:
       - type: rewrite
         source: /*

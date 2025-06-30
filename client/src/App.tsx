@@ -42,11 +42,13 @@ function App() {
             <Route element={<PublicLayout><Outlet /></PublicLayout>}>
               <Route path="/" element={<Landing />} />
               <Route path="/demo" element={<Demo />} />
-              <Route path="/auth" element={<Auth />} />
               <Route path="/auth/success" element={<AuthSuccess />} />
-              <Route path="/sign-in/*" element={<Auth />} />
-              <Route path="/sign-up/*" element={<Auth />} />
             </Route>
+
+            {/* Auth Routes - No Layout (Auth has its own header) */}
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/sign-in/*" element={<Auth />} />
+            <Route path="/sign-up/*" element={<Auth />} />
 
           {/* Protected Routes - Auth Required */}
           <Route

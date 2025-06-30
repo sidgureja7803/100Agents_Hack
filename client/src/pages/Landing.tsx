@@ -231,9 +231,15 @@ export const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 relative overflow-hidden">
+      {/* Animated Background Elements */}
+      <div className="absolute inset-0 overflow-hidden">
+        <div className="absolute -top-1/2 -right-1/2 w-full h-full bg-gradient-to-br from-purple-400/20 via-blue-400/20 to-cyan-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-1/2 -left-1/2 w-full h-full bg-gradient-to-tr from-pink-400/20 via-purple-400/20 to-indigo-400/20 rounded-full blur-3xl animate-pulse delay-1000"></div>
+      </div>
+      
       {/* Navigation */}
-      <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-lg border-b border-slate-200/60 z-50">
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-xl border-b border-purple-200/40 z-50 shadow-lg shadow-purple-500/10">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
@@ -294,11 +300,12 @@ export const Landing = () => {
 
       {/* Hero Section */}
       <section className="pt-32 pb-20 px-4 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 via-blue-600/10 to-cyan-600/10 blur-3xl"></div>
-        <div className="container mx-auto text-center relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-purple-100/30 to-pink-100/30"></div>
+        <div className="container mx-auto text-center relative z-10">
           {/* Floating Agent Indicator */}
           <div className="mb-8 flex justify-center">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl p-4 shadow-lg border border-slate-200/60">
+            <div className="bg-white/90 backdrop-blur-md rounded-2xl p-6 shadow-2xl shadow-purple-500/20 border border-purple-200/50 ring-1 ring-purple-500/10">
               <div className="flex items-center space-x-4">
                 <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${agents[currentAgentIndex].color} bg-opacity-20 flex items-center justify-center transition-all duration-500`}>
                   {agents[currentAgentIndex].icon}
@@ -360,8 +367,9 @@ export const Landing = () => {
       </section>
 
       {/* Stats Section */}
-      <section className="py-20 bg-gradient-to-br from-slate-50 to-white">
-        <div className="container mx-auto px-4">
+      <section className="py-20 bg-gradient-to-br from-white/50 via-purple-50/50 to-pink-50/50 backdrop-blur-sm relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-cyan-500/5"></div>
+        <div className="container mx-auto px-4 relative z-10">
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-slate-900 mb-4">Trusted by Industry Leaders</h2>
             <p className="text-slate-600">Join thousands of developers using AI agents for DevOps automation</p>
@@ -370,7 +378,7 @@ export const Landing = () => {
             {stats.map((stat, index) => (
               <div 
                 key={index}
-                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-200 border border-slate-200/60 group"
+                className="bg-white/80 backdrop-blur-md rounded-2xl p-6 shadow-xl shadow-purple-500/10 hover:shadow-2xl hover:shadow-purple-500/20 transition-all duration-300 border border-purple-200/40 group hover:scale-105"
               >
                 <div className="flex items-center space-x-4">
                   <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
@@ -388,7 +396,8 @@ export const Landing = () => {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="py-20">
+      <section id="features" className="py-20 relative">
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-indigo-50/30 to-purple-50/30"></div>
         <div className="container mx-auto px-4">
           <div className="text-center mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
@@ -428,7 +437,8 @@ export const Landing = () => {
       </section>
 
       {/* Technology Stack */}
-      <section id="tech" className="py-20 bg-slate-50">
+      <section id="tech" className="py-20 bg-gradient-to-br from-slate-50/80 via-purple-50/40 to-pink-50/40 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-blue-500/5 via-purple-500/5 to-pink-500/5"></div>
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
@@ -468,7 +478,8 @@ export const Landing = () => {
       </section>
 
       {/* How It Works */}
-      <section id="workflow" className="py-20 bg-white">
+      <section id="workflow" className="py-20 bg-gradient-to-br from-white/80 via-indigo-50/30 to-purple-50/30 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-cyan-500/5 via-blue-500/5 to-purple-500/5"></div>
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
@@ -504,7 +515,8 @@ export const Landing = () => {
       </section>
 
       {/* Testimonials */}
-      <section id="testimonials" className="py-20 bg-slate-50">
+      <section id="testimonials" className="py-20 bg-gradient-to-br from-slate-50/80 via-blue-50/40 to-indigo-50/40 relative">
+        <div className="absolute inset-0 bg-gradient-to-r from-green-500/5 via-blue-500/5 to-purple-500/5"></div>
         <div className="container mx-auto px-4">
           <div className="text-center space-y-4 mb-16">
             <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
@@ -545,8 +557,9 @@ export const Landing = () => {
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-purple-900 via-blue-900 to-slate-900 relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-blue-600/20 blur-3xl"></div>
+      <section className="py-20 bg-gradient-to-r from-purple-900 via-blue-900 to-indigo-900 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-600/30 via-blue-600/30 to-cyan-600/30 blur-3xl"></div>
+        <div className="absolute inset-0 bg-gradient-to-br from-pink-500/10 via-purple-500/10 to-blue-500/10"></div>
         <div className="container mx-auto px-4 text-center relative">
           <div className="max-w-4xl mx-auto space-y-8">
             <h2 className="text-4xl md:text-6xl font-bold text-white leading-tight">

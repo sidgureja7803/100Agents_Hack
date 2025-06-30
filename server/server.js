@@ -733,7 +733,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
   console.log(`🚀 DevOps AI Agent Server running on port ${PORT}`);
   console.log(`📁 Temp directory: ${TEMP_DIR}`);
   console.log(`🔗 Client URL: ${process.env.CLIENT_URL || "http://localhost:5173"}`);
