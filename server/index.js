@@ -226,7 +226,7 @@ COPY --from=frontend-builder /app/frontend/build ./public
 RUN chown -R nodejs:nodejs /app
 USER nodejs
 
-# Expose port
+# Expose port (default, but app should use PORT env var)
 EXPOSE 3000
 
 # Health check
@@ -261,7 +261,7 @@ COPY . .
 RUN chown -R nodejs:nodejs /app
 USER nodejs
 
-# Expose port
+# Expose port (default, but app should use PORT env var)
 EXPOSE 3000
 
 # Health check
@@ -324,10 +324,11 @@ COPY . .
 RUN chown -R appuser:appgroup /app
 USER appuser
 
+# Expose port (default, but app should use PORT env var)
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \\
-  CMD curl -f http://localhost:3000/health || exit 1
+  CMD curl -f http://localhost:\${PORT:-3000}/health || exit 1
 
 CMD ["npm", "start"]`;
 }
@@ -551,7 +552,7 @@ function generateEnvExample(techStack) {
   let envVars = [
     '# Application Configuration',
     'NODE_ENV=production',
-    'PORT=3000',
+    'PORT=10000',
     'HOST=0.0.0.0',
     '',
     '# API Keys',
@@ -578,7 +579,7 @@ function generateEnvExample(techStack) {
     envVars.push(
       '',
       '# Frontend Configuration',
-      'REACT_APP_API_URL=http://localhost:3000/api',
+      'REACT_APP_API_URL=http://localhost:10000/api',
       'REACT_APP_ENV=production'
     );
   }
