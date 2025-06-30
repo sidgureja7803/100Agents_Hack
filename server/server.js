@@ -16,10 +16,14 @@ const app = express();
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: [
+      process.env.CLIENT_URL,           // deployed frontend URL (e.g., https://yourapp.web.app)
+      "http://localhost:5173"           // local development
+    ],
     methods: ["GET", "POST"]
   }
 });
+
 
 const PORT = process.env.PORT || 3001;
 const TEMP_DIR = path.join(process.cwd(), 'temp');
