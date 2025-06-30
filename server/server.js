@@ -72,11 +72,19 @@ app.use((req, res, next) => {
   next();
 });
 
-// Ensure temp directory exists
-await fs.ensureDir(TEMP_DIR);
-
 // Store active sessions
 const activeSessions = new Map();
+
+// Initialize temp directory
+async function initializeTempDir() {
+  try {
+    await fs.ensureDir(TEMP_DIR);
+    console.log(`✅ Temp directory initialized: ${TEMP_DIR}`);
+  } catch (error) {
+    console.error('❌ Failed to initialize temp directory:', error);
+    // Continue anyway, create it later if needed
+  }
+}
 
 // Socket.io connection handling
 io.on('connection', (socket) => {
@@ -732,12 +740,66 @@ app.use((err, req, res, next) => {
   });
 });
 
-// Start server
-server.listen(PORT, '0.0.0.0', () => {
-  console.log(`🚀 DevOps AI Agent Server running on port ${PORT}`);
-  console.log(`📁 Temp directory: ${TEMP_DIR}`);
-  console.log(`🔗 Client URL: ${process.env.CLIENT_URL || "http://localhost:5173"}`);
-  console.log('🤖 Multi-agent system: LangGraph + OpenAI');
+// Add global error handlers
+process.on('uncaughtException', (error) => {
+  console.error('❌ Uncaught Exception:', error);
+  process.exit(1);
 });
+
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+  process.exit(1);
+});
+
+// Start server
+async function startServer() {
+  try {
+    console.log('🚀 Starting DevPilotAI Server...');
+    console.log(`📍 Node.js version: ${process.version}`);
+    console.log(`📍 Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`📍 PORT: ${PORT}`);
+    
+    // Check critical environment variables (non-blocking)
+    const envChecks = {
+      'CLIENT_URL': process.env.CLIENT_URL || 'Not set (using defaults)',
+      'NODE_ENV': process.env.NODE_ENV || 'development',
+      'PORT': PORT
+    };
+    
+    console.log('🔧 Environment variables:');
+    Object.entries(envChecks).forEach(([key, value]) => {
+      console.log(`   ${key}: ${value}`);
+    });
+    
+    // Initialize temp directory
+    await initializeTempDir();
+    
+    // Start the server
+    server.listen(PORT, '0.0.0.0', () => {
+      console.log(`🚀 DevOps AI Agent Server running on port ${PORT}`);
+      console.log(`📁 Temp directory: ${TEMP_DIR}`);
+      console.log(`🔗 Client URL: ${process.env.CLIENT_URL || "http://localhost:5173"}`);
+      console.log('🤖 Multi-agent system: LangGraph + OpenAI');
+      console.log('✅ Server startup complete!');
+    });
+    
+    // Handle server errors
+    server.on('error', (error) => {
+      if (error.code === 'EADDRINUSE') {
+        console.error(`❌ Port ${PORT} is already in use`);
+      } else {
+        console.error('❌ Server error:', error);
+      }
+      process.exit(1);
+    });
+    
+  } catch (error) {
+    console.error('❌ Failed to start server:', error);
+    process.exit(1);
+  }
+}
+
+// Start the server
+startServer();
 
 export default app; 
