@@ -20,11 +20,15 @@ import {
   Globe,
   Clock,
   Target,
-  BarChart3
+  BarChart3,
+  Menu,
+  X
 } from 'lucide-react';
+import { useState } from 'react';
 
-export const LandingPage = () => {
+export const Landing = () => {
   const navigate = useNavigate();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   
   const stats = [
     { label: "Repositories Automated", value: "50K+", icon: <GitBranch className="h-5 w-5" /> },
@@ -81,7 +85,7 @@ export const LandingPage = () => {
     },
     {
       name: "Marcus Rodriguez",
-      role: "CTO @ StartupXYZ",
+      role: "CTO @ StartupXYZ", 
       content: "As a startup, we don't have dedicated DevOps resources. DevPilotAI gave us enterprise-level deployment pipelines instantly.",
       avatar: "👨‍💼"
     },
@@ -104,16 +108,71 @@ export const LandingPage = () => {
 
   return (
     <div className="min-h-screen bg-white">
+      {/* Navigation */}
+      <nav className="fixed top-0 w-full bg-white/90 backdrop-blur-lg border-b border-slate-200/60 z-50">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 bg-gradient-to-r from-purple-600 to-pink-600 rounded-lg flex items-center justify-center">
+                <Rocket className="h-5 w-5 text-white" />
+              </div>
+              <span className="text-xl font-bold text-slate-900">DevPilotAI</span>
+            </div>
+            
+            {/* Desktop Navigation */}
+            <div className="hidden md:flex items-center space-x-8">
+              <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors">Features</a>
+              <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors">Testimonials</a>
+              <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors">Technology</a>
+              <Button variant="outline" onClick={() => navigate('/demo')}>
+                Try Demo
+              </Button>
+              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                Get Started Free
+              </Button>
+            </div>
+            
+            {/* Mobile Menu Button */}
+            <button 
+              className="md:hidden"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            >
+              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          </div>
+          
+          {/* Mobile Navigation */}
+          {mobileMenuOpen && (
+            <div className="md:hidden mt-4 pb-4 border-t border-slate-200/60">
+              <div className="flex flex-col space-y-4 mt-4">
+                <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors">Features</a>
+                <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors">Testimonials</a>
+                <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors">Technology</a>
+                <div className="flex flex-col space-y-2">
+                  <Button variant="outline" onClick={() => navigate('/demo')} className="w-full">
+                    Try Demo
+                  </Button>
+                  <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
+                    Get Started Free
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </nav>
+
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
-        {/* Background Effects */}
+      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 pt-24">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"60\" height=\"60\" viewBox=\"0 0 60 60\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"none\" fill-rule=\"evenodd\"%3E%3Cg fill=\"%239C92AC\" fill-opacity=\"0.1\"%3E%3Ccircle cx=\"30\" cy=\"30\" r=\"2\"/%3E%3C/g%3E%3C/g%3E%3C/svg%3E')]"></div>
+          <div className="absolute inset-0" style={{
+            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(156,146,172,0.15) 1px, transparent 0)",
+            backgroundSize: "20px 20px"
+          }}></div>
         </div>
         
         <div className="container mx-auto px-4 py-24 relative">
           <div className="max-w-5xl mx-auto text-center space-y-12">
-            {/* Badge */}
             <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
               <Sparkles className="h-5 w-5 text-yellow-400" />
               <span className="text-white font-medium">AI-Powered DevOps Revolution</span>
@@ -122,7 +181,6 @@ export const LandingPage = () => {
               </Badge>
             </div>
             
-            {/* Main Headline */}
             <div className="space-y-6">
               <h1 className="text-6xl md:text-8xl font-bold text-white leading-tight">
                 Deploy
@@ -139,12 +197,11 @@ export const LandingPage = () => {
               </p>
             </div>
             
-            {/* CTA Buttons */}
             <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
               <Button 
                 size="lg" 
                 className="px-12 py-6 text-lg bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 rounded-full shadow-2xl shadow-purple-500/25 hover:shadow-purple-500/40 transition-all duration-300"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/auth')}
               >
                 <Rocket className="mr-3 h-6 w-6" />
                 Start Building Free
@@ -154,13 +211,13 @@ export const LandingPage = () => {
                 variant="outline" 
                 size="lg" 
                 className="px-12 py-6 text-lg border-white/30 text-white hover:bg-white/10 rounded-full backdrop-blur-sm"
+                onClick={() => navigate('/demo')}
               >
                 <Play className="mr-3 h-5 w-5" />
-                Watch Demo
+                Try Demo
               </Button>
             </div>
             
-            {/* Stats */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-8 mt-16 pt-16 border-t border-white/10">
               {stats.map((stat, index) => (
                 <div key={index} className="text-center space-y-2">
@@ -177,7 +234,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Features Section */}
-      <section className="py-24 bg-gradient-to-b from-slate-50 to-white">
+      <section id="features" className="py-24 bg-gradient-to-b from-slate-50 to-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-purple-100 rounded-full px-4 py-2 mb-6">
@@ -222,7 +279,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Testimonials Section */}
-      <section className="py-24 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-900">
+      <section id="testimonials" className="py-24 bg-gradient-to-r from-purple-900 via-slate-900 to-purple-900">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-white/10 backdrop-blur-sm rounded-full px-4 py-2 mb-6">
@@ -261,7 +318,7 @@ export const LandingPage = () => {
       </section>
 
       {/* Tech Stack Section */}
-      <section className="py-24 bg-white">
+      <section id="tech" className="py-24 bg-white">
         <div className="container mx-auto px-4">
           <div className="text-center mb-20">
             <div className="inline-flex items-center space-x-2 bg-slate-100 rounded-full px-4 py-2 mb-6">
@@ -298,7 +355,10 @@ export const LandingPage = () => {
       {/* CTA Section */}
       <section className="py-24 bg-gradient-to-r from-purple-600 to-pink-600 relative overflow-hidden">
         <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg width=\"40\" height=\"40\" viewBox=\"0 0 40 40\" xmlns=\"http://www.w3.org/2000/svg\"%3E%3Cg fill=\"white\" fill-opacity=\"0.1\"%3E%3Cpath d=\"M20 20c0-11.046-8.954-20-20-20v20h20z\"/%3E%3C/g%3E%3C/svg%3E')]"></div>
+          <div className="absolute inset-0" style={{
+            backgroundImage: "linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%), linear-gradient(-45deg, rgba(255,255,255,0.1) 25%, transparent 25%), linear-gradient(45deg, transparent 75%, rgba(255,255,255,0.1) 75%), linear-gradient(-45deg, transparent 75%, rgba(255,255,255,0.1) 75%)",
+            backgroundSize: "20px 20px"
+          }}></div>
         </div>
         
         <div className="container mx-auto px-4 text-center relative">
@@ -319,7 +379,7 @@ export const LandingPage = () => {
               <Button 
                 size="lg" 
                 className="px-12 py-6 text-lg bg-white text-purple-600 hover:bg-slate-50 rounded-full shadow-2xl hover:shadow-white/20 transition-all duration-300 font-semibold"
-                onClick={() => navigate('/login')}
+                onClick={() => navigate('/auth')}
               >
                 <Zap className="mr-3 h-6 w-6" />
                 Start Free Trial
@@ -329,13 +389,14 @@ export const LandingPage = () => {
                 variant="outline" 
                 size="lg" 
                 className="px-12 py-6 text-lg border-white/30 text-white hover:bg-white/10 rounded-full backdrop-blur-sm"
+                onClick={() => window.open('https://github.com', '_blank')}
               >
                 <Github className="mr-3 h-5 w-5" />
                 View on GitHub
               </Button>
             </div>
             
-            <div className="flex items-center justify-center space-x-8 pt-8">
+            <div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 pt-8">
               <div className="flex items-center space-x-2 text-purple-200">
                 <CheckCircle className="h-5 w-5" />
                 <span className="text-sm">No credit card required</span>
@@ -354,4 +415,4 @@ export const LandingPage = () => {
       </section>
     </div>
   );
-};
+}; 

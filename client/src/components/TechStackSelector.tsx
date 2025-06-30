@@ -1,48 +1,84 @@
+import React, { useEffect, useState } from 'react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Code, Database, Globe, Server } from 'lucide-react';
+
+interface TechStack {
+  value: string;
+  label: string;
+  icon: React.ElementType;
+  description: string;
+}
 
 interface TechStackSelectorProps {
   value: string;
   onChange: (value: string) => void;
 }
 
-const techStacks = [
-  { value: 'react', label: 'React', icon: Code, description: 'Frontend React application' },
-  { value: 'nextjs', label: 'Next.js', icon: Globe, description: 'Full-stack React framework' },
-  { value: 'nodejs', label: 'Node.js', icon: Server, description: 'Backend Node.js application' },
-  { value: 'express', label: 'Express.js', icon: Server, description: 'Node.js web framework' },
-  { value: 'django', label: 'Django', icon: Database, description: 'Python web framework' },
-  { value: 'flask', label: 'Flask', icon: Database, description: 'Lightweight Python framework' },
-  { value: 'vue', label: 'Vue.js', icon: Code, description: 'Progressive JavaScript framework' },
-  { value: 'angular', label: 'Angular', icon: Code, description: 'TypeScript-based framework' },
-  { value: 'spring', label: 'Spring Boot', icon: Server, description: 'Java application framework' },
-  { value: 'laravel', label: 'Laravel', icon: Database, description: 'PHP web framework' },
-];
+export const TechStackSelector: React.FC<TechStackSelectorProps> = ({ value, onChange }) => {
+  const [techStacks, setTechStacks] = useState<TechStack[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export const TechStackSelector = ({ value, onChange }: TechStackSelectorProps) => {
-  const selectedStack = techStacks.find(stack => stack.value === value);
+  useEffect(() => {
+    const fetchTechStacks = async () => {
+      try {
+        const response = await fetch(`${import.meta.env.VITE_APPWRITE_FUNCTION_URL}/tech-stacks`, {
+          headers: {
+            'X-Appwrite-Project': import.meta.env.VITE_APPWRITE_PROJECT_ID,
+          },
+        });
+
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+        const data = await response.json();
+
+        // Map the icons to the corresponding components
+        const iconMap: { [key: string]: React.ElementType } = {
+          code: Code,
+          database: Database,
+          globe: Globe,
+          server: Server,
+        };
+
+        const formattedStacks = data.map((stack: any) => ({
+          value: stack.id,
+          label: stack.name,
+          icon: iconMap[stack.icon] || Code,
+          description: stack.description,
+        }));
+
+        setTechStacks(formattedStacks);
+      } catch (error) {
+        console.error('Failed to fetch tech stacks:', error);
+        // Fallback to some basic options in case of error
+        setTechStacks([
+          { value: 'react', label: 'React', icon: Code, description: 'Frontend React application' },
+          { value: 'nodejs', label: 'Node.js', icon: Server, description: 'Backend Node.js application' },
+        ]);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTechStacks();
+  }, []);
 
   return (
-    <div className="space-y-3">
-      <Label htmlFor="tech-stack" className="text-base font-semibold text-slate-700 flex items-center gap-2">
-        <Code className="h-5 w-5" />
-        Technology Stack
-      </Label>
-      <Select value={value} onValueChange={onChange}>
-        <SelectTrigger className="h-12 text-base border-2 border-slate-200 focus:border-blue-500">
-          <SelectValue placeholder="Select your technology stack" />
+    <div className="space-y-2">
+      <Label>Tech Stack</Label>
+      <Select value={value} onValueChange={onChange} disabled={loading}>
+        <SelectTrigger>
+          <SelectValue placeholder="Select a tech stack" />
         </SelectTrigger>
-        <SelectContent className="max-h-80">
+        <SelectContent>
           {techStacks.map((stack) => {
             const Icon = stack.icon;
             return (
-              <SelectItem key={stack.value} value={stack.value} className="py-3">
-                <div className="flex items-center gap-3">
-                  <Icon className="h-5 w-5 text-slate-600" />
+              <SelectItem key={stack.value} value={stack.value}>
+                <div className="flex items-center space-x-2">
+                  <Icon className="h-4 w-4" />
                   <div>
                     <div className="font-medium">{stack.label}</div>
-                    <div className="text-sm text-slate-500">{stack.description}</div>
+                    <div className="text-xs text-slate-500">{stack.description}</div>
                   </div>
                 </div>
               </SelectItem>
@@ -50,12 +86,6 @@ export const TechStackSelector = ({ value, onChange }: TechStackSelectorProps) =
           })}
         </SelectContent>
       </Select>
-      {selectedStack && (
-        <div className="flex items-center gap-2 text-sm text-slate-600 bg-blue-50 p-3 rounded-lg">
-          <selectedStack.icon className="h-4 w-4" />
-          <span>Selected: {selectedStack.label} - {selectedStack.description}</span>
-        </div>
-      )}
     </div>
   );
 };

@@ -66,40 +66,39 @@ export async function devPilotAI(req, res) {
     const { repoUrl, techStack, userId } = req.body;
 
     // Validate input
-    if (!repoUrl || !techStack || !userId) {
+    if (!repoUrl || !techStack) {
       return res.status(400).json({
-        error: 'Missing required parameters: repoUrl, techStack, and userId are required'
+        error: 'Missing required parameters: repoUrl and techStack are required'
       });
     }
 
-    console.log(`Processing request for user: ${userId}, repo: ${repoUrl}, tech stack: ${techStack}`);
+    // Use anonymous user ID if not provided
+    const effectiveUserId = userId || 'anonymous';
+
+    console.log(`Processing request for user: ${effectiveUserId}, repo: ${repoUrl}, tech stack: ${techStack}`);
 
     // Track request initiation
     await trackEvent('devpilot_request_started', {
       repoUrl,
       techStack,
-      userId
-    }, {
-      userId,
-      techStack,
-      repoUrl
+      userId: effectiveUserId
     });
 
     // Generate configuration files
-    const dockerfile = await generateDockerfileWithTracking(techStack, { userId, repoUrl });
-    const githubActions = await generateGitHubActionsWithTracking(techStack, { userId, repoUrl });
+    const dockerfile = await generateDockerfileWithTracking(techStack, { userId: effectiveUserId, repoUrl });
+    const githubActions = await generateGitHubActionsWithTracking(techStack, { userId: effectiveUserId, repoUrl });
     const envExample = generateEnvExample(techStack);
+    const docs = await fetchDeploymentInstructions(techStack, { userId: effectiveUserId, repoUrl });
 
-    // Fetch deployment instructions using Tavily API
-    const docs = await fetchDeploymentInstructions(techStack, { userId, repoUrl });
-
-    // Store interaction in Mem0
-    await storeInteraction(userId, {
-      repoUrl,
-      techStack,
-      timestamp: new Date().toISOString(),
-      generatedFiles: ['Dockerfile', 'GitHub Actions workflow', '.env.example']
-    });
+    // Store interaction in Mem0 if userId is provided
+    if (userId) {
+      await storeInteraction(userId, {
+        repoUrl,
+        techStack,
+        timestamp: new Date().toISOString(),
+        generatedFiles: ['Dockerfile', 'GitHub Actions workflow', '.env.example']
+      });
+    }
 
     // Return response
     const response = {
@@ -115,21 +114,13 @@ export async function devPilotAI(req, res) {
     await trackEvent('devpilot_request_completed', {
       repoUrl,
       techStack,
-      userId,
+      userId: effectiveUserId,
       response_size: JSON.stringify(response).length,
       generated_files: ['dockerfile', 'githubActions', 'envExample'],
       docs_count: response.docs?.length || 0
-    }, {
-      userId,
-      techStack,
-      repoUrl
     });
     
-    if (res) {
-      return res.status(200).json(response);
-    }
-    
-    return response;
+    return res.status(200).json(response);
 
   } catch (error) {
     console.error('Error in devPilotAI function:', error);
@@ -138,25 +129,15 @@ export async function devPilotAI(req, res) {
     await trackEvent('devpilot_request_failed', {
       repoUrl: req.body?.repoUrl,
       techStack: req.body?.techStack,
-      userId: req.body?.userId,
+      userId: req.body?.userId || 'anonymous',
       error: error.message,
       stack: error.stack
-    }, {
-      userId: req.body?.userId,
-      techStack: req.body?.techStack,
-      repoUrl: req.body?.repoUrl
     });
     
-    const errorResponse = {
-      error: 'Internal server error',
+    return res.status(500).json({
+      error: 'Failed to generate CI/CD setup',
       message: error.message
-    };
-    
-    if (res) {
-      return res.status(500).json(errorResponse);
-    }
-    
-    throw error;
+    });
   }
 }
 

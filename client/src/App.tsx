@@ -4,9 +4,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
-import { LandingPage } from "@/components/LandingPage";
-import Dashboard from "./pages/Dashboard";
-import Index from "./pages/Index";
+import { Landing } from "@/pages/Landing";
+import { Auth } from "@/pages/Auth";
+import { Demo } from "@/pages/Demo";
+import { EnhancedDashboard } from "@/pages/EnhancedDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -17,13 +18,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="text-slate-600">Loading your dashboard...</p>
+        </div>
       </div>
     );
   }
   
-  return isAuthenticated ? <>{children}</> : <Navigate to="/login" replace />;
+  return isAuthenticated ? <>{children}</> : <Navigate to="/auth" replace />;
 };
 
 // Public Route Component (redirects to dashboard if already authenticated)
@@ -32,8 +36,11 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600 mx-auto"></div>
+          <p className="text-slate-600">Loading...</p>
+        </div>
       </div>
     );
   }
@@ -50,23 +57,28 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             {/* Public Routes */}
-            <Route path="/" element={<LandingPage />} />
-            <Route path="/home" element={<LandingPage />} />
+            <Route path="/" element={<Landing />} />
+            <Route path="/home" element={<Landing />} />
             <Route 
-              path="/login" 
+              path="/auth" 
               element={
                 <PublicRoute>
-                  <Index />
+                  <Auth />
                 </PublicRoute>
               } 
             />
+            <Route path="/demo" element={<Demo />} />
+            
+            {/* Legacy redirects */}
+            <Route path="/login" element={<Navigate to="/auth" replace />} />
+            <Route path="/signup" element={<Navigate to="/auth" replace />} />
             
             {/* Protected Routes */}
             <Route 
               path="/dashboard" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <EnhancedDashboard />
                 </ProtectedRoute>
               } 
             />
@@ -74,7 +86,23 @@ const App = () => (
               path="/generate" 
               element={
                 <ProtectedRoute>
-                  <Dashboard />
+                  <EnhancedDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/projects" 
+              element={
+                <ProtectedRoute>
+                  <EnhancedDashboard />
+                </ProtectedRoute>
+              } 
+            />
+            <Route 
+              path="/analytics" 
+              element={
+                <ProtectedRoute>
+                  <EnhancedDashboard />
                 </ProtectedRoute>
               } 
             />
