@@ -15,7 +15,7 @@ import {
   GitBranch
 } from 'lucide-react';
 import { GitHubConnect } from '@/components/GitHubConnect';
-import { useUser, SignOutButton } from '@clerk/clerk-react';
+import { useAuth } from '@/contexts/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
 
 interface DashboardLayoutProps {
@@ -29,11 +29,22 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
   title = "Dashboard",
   subtitle 
 }) => {
-  const { user } = useUser();
+  const { user, logout } = useAuth();
   const navigate = useNavigate();
 
-  const githubUser = user?.publicMetadata?.githubUsername as string;
-  const avatarUrl = user?.imageUrl;
+  const handleLogout = async () => {
+    try {
+      await logout();
+      navigate('/auth');
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
+  // Get user avatar - in Appwrite, we might not have imageUrl by default
+  const avatarUrl = user?.prefs?.avatarUrl || undefined;
+  const userName = user?.name || 'User';
+  const userEmail = user?.email || '';
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-slate-50">
@@ -79,10 +90,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
               </nav>
 
               {/* GitHub Username Display */}
-              {githubUser && (
+              {user?.prefs?.githubUsername && (
                 <div className="hidden sm:flex items-center text-sm text-slate-600">
                   <Github className="h-4 w-4 mr-1" />
-                  {githubUser}
+                  {user.prefs.githubUsername}
                 </div>
               )}
               
@@ -91,9 +102,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={avatarUrl} alt={user?.fullName || 'User avatar'} />
+                      <AvatarImage src={avatarUrl} alt={userName} />
                       <AvatarFallback>
-                        {user?.fullName?.[0]?.toUpperCase() || 'U'}
+                        {userName[0]?.toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                   </Button>
@@ -101,9 +112,9 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                 <DropdownMenuContent className="w-56" align="end" forceMount>
                   <div className="flex items-center justify-start gap-2 p-2">
                     <div className="flex flex-col space-y-1 leading-none">
-                      <p className="font-medium">{user?.fullName}</p>
+                      <p className="font-medium">{userName}</p>
                       <p className="w-[200px] truncate text-sm text-muted-foreground">
-                        {user?.primaryEmailAddress?.emailAddress}
+                        {userEmail}
                       </p>
                     </div>
                   </div>
@@ -117,14 +128,10 @@ export const DashboardLayout: React.FC<DashboardLayoutProps> = ({
                     Repositories
                   </DropdownMenuItem>
                   <Separator />
-                  <SignOutButton>
-                    <DropdownMenuItem>
-                      <div className="flex items-center">
-                        <LogOut className="mr-2 h-4 w-4" />
-                        Sign out
-                      </div>
-                    </DropdownMenuItem>
-                  </SignOutButton>
+                  <DropdownMenuItem onClick={handleLogout}>
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Sign out
+                  </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
             </div>

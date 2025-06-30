@@ -1,8 +1,9 @@
-import { ClerkProvider, SignedIn, SignedOut, RedirectToSignIn } from '@clerk/clerk-react';
+import React from 'react';
 import { BrowserRouter as Router, Route, Routes, Navigate, Outlet } from 'react-router-dom';
 import { Toaster } from '@/components/ui/toaster';
 import { PublicLayout } from '@/components/layouts/PublicLayout';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { AuthProvider, useAuth } from '@/contexts/AuthContext';
 import { Landing } from '@/pages/Landing';
 import { Demo } from '@/pages/Demo';
 import { Auth } from '@/pages/Auth';
@@ -10,15 +11,28 @@ import { NotFound } from '@/pages/NotFound';
 import { EnhancedDashboard } from '@/pages/EnhancedDashboard';
 import { RepoSelection } from '@/pages/RepoSelection';
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+// Protected Route Component
+const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { isAuthenticated, loading } = useAuth();
 
-if (!PUBLISHABLE_KEY) {
-  throw new Error("Missing Publishable Key");
-}
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+      </div>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <>{children}</>;
+};
 
 function App() {
   return (
-    <ClerkProvider publishableKey={PUBLISHABLE_KEY}>
+    <AuthProvider>
       <Router>
         <Routes>
           {/* Public Routes - No Auth Required */}
@@ -33,16 +47,11 @@ function App() {
           {/* Protected Routes - Auth Required */}
           <Route
             element={
-              <>
-                <SignedIn>
-                  <DashboardLayout>
-                    <Outlet />
-                  </DashboardLayout>
-                </SignedIn>
-                <SignedOut>
-                  <RedirectToSignIn />
-                </SignedOut>
-              </>
+              <ProtectedRoute>
+                <DashboardLayout>
+                  <Outlet />
+                </DashboardLayout>
+              </ProtectedRoute>
             }
           >
             {/* Dashboard Routes */}
@@ -61,7 +70,7 @@ function App() {
         </Routes>
         <Toaster />
       </Router>
-    </ClerkProvider>
+    </AuthProvider>
   );
 }
 
