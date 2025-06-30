@@ -1,340 +1,253 @@
-# DevPilotAI 🚀
+# DevPilotAI - AI-Powered DevOps Automation Platform
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Node.js](https://img.shields.io/badge/Node.js-18%2B-green)](https://nodejs.org/)
-[![React](https://img.shields.io/badge/React-18-blue)](https://reactjs.org/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5-blue)](https://www.typescriptlang.org/)
+DevPilotAI is a comprehensive AI-powered platform that automates DevOps workflows by analyzing GitHub repositories and generating production-ready CI/CD configurations. The platform uses a multi-agent system to intelligently analyze codebases, detect tech stacks, and create deployment-ready files.
 
-> **AI-powered DevOps assistant that generates production-grade Dockerfiles, CI/CD workflows, environment files, and deployment instructions from any GitHub repository.**
+## 🚀 Features
 
-## 🌟 Features
-
-### 🤖 AI-Powered Generation
-- **Smart Repository Analysis**: AI analyzes your codebase to understand the tech stack
-- **Production-Ready Dockerfiles**: Multi-stage builds with security best practices
-- **Complete CI/CD Pipelines**: GitHub Actions workflows with testing, building, and deployment
-- **Environment Templates**: Comprehensive `.env.example` files with all necessary variables
-- **Deployment Documentation**: Step-by-step guides for various cloud platforms
-
-### 🔧 Tech Stack Support
-- **React + Node.js**: Full-stack web applications
-- **Node.js**: API servers and backend services  
-- **Python Flask/Django**: Python web applications
-- **Generic Applications**: Automatic detection and configuration
-
-### 🛡️ Security & Privacy
-- **No Code Storage**: Source code is analyzed but never stored permanently
-- **OAuth Authentication**: Secure login with Google and GitHub
-- **Server-Side Processing**: All sensitive operations handled securely on backend
-
-### 📊 Advanced Features
-- **Memory Integration**: Persistent user preferences and generation history
-- **Real-time Observability**: Advanced analytics and monitoring
-- **Interactive Chat**: AI assistant for deployment questions
-- **Modern UI**: Beautiful, responsive interface built with shadcn/ui
+- **Multi-Agent AI System**: Uses LangGraph with specialized agents for different tasks
+- **GitHub Integration**: Connect your GitHub account and analyze any repository
+- **Tech Stack Detection**: Automatically detects programming languages and frameworks
+- **CI/CD Generation**: Creates Dockerfiles, GitHub Actions workflows, and environment files
+- **Real-time Progress**: Live updates during analysis with WebSocket integration
+- **Secure Authentication**: Powered by Appwrite with OAuth support
+- **Modern UI**: Beautiful, responsive interface built with React and Tailwind CSS
 
 ## 🏗️ Architecture
 
-```
-DevPilotAI/
-├── client/                 # React TypeScript frontend
-│   ├── src/
-│   │   ├── components/     # UI components
-│   │   ├── pages/          # Application pages
-│   │   ├── lib/            # API clients and utilities
-│   │   └── contexts/       # React contexts
-│   └── package.json
-└── server/                 # Node.js backend
-    ├── index.js            # Main server function
-    ├── test.js             # Test suite
-    └── package.json
-```
+### Authentication & Database
+- **Appwrite**: Handles user authentication (email/password + OAuth) and data storage
+- **GitHub OAuth**: Integrated through Appwrite for seamless GitHub account connection
 
-## 🚀 Quick Start
+### Repository Operations
+- **GitHub API**: Used for repository discovery, access, and cloning operations
+- **Simple Git**: Handles repository cloning and file operations
 
-### Prerequisites
-- Node.js 18 or higher
-- npm or yarn
-- Git
+### AI & Intelligence
+- **LangGraph Multi-Agent System**: Four specialized agents working together:
+  - **Planner Agent**: Analyzes repository structure and creates execution plans
+  - **Analyzer Agent**: Detects tech stack and dependencies
+  - **Generator Agent**: Creates CI/CD files (Dockerfile, GitHub Actions, .env.example)
+  - **Verifier Agent**: Validates and optimizes generated configurations
+- **Llama 3 70B**: Powers the AI agents via Novita.ai API
+- **Tavily API**: Provides real-time deployment documentation and best practices
+- **Mem0**: Stores user interaction history and preferences for personalized recommendations
 
-### 1. Clone the Repository
+### Real-time Communication
+- **Socket.IO**: Enables real-time progress updates and agent communication
+- **WebSocket**: Live streaming of analysis progress to the frontend
+
+## 🛠️ Technology Stack
+
+### Frontend
+- React 18 + TypeScript
+- Tailwind CSS + shadcn/ui components
+- React Router for navigation
+- Socket.IO client for real-time updates
+- Appwrite SDK for authentication
+
+### Backend
+- Node.js + Express
+- Socket.IO for real-time communication
+- Appwrite for authentication and database
+- GitHub API for repository operations
+- LangGraph for multi-agent orchestration
+
+### AI & External Services
+- **Llama 3 70B** (via Novita.ai) - Core AI model
+- **Tavily API** - Real-time search and documentation
+- **Mem0** - User memory and preferences
+- **Appwrite** - Authentication and database
+- **GitHub API** - Repository operations
+
+## 🔧 Environment Variables
+
+### Frontend (.env)
 ```bash
-git clone https://github.com/your-username/DevPilot.git
-cd DevPilot
+# API Configuration
+VITE_API_URL=https://your-backend-url.com
+
+# Appwrite Configuration
+VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+VITE_APPWRITE_PROJECT_ID=your-appwrite-project-id
 ```
 
-### 2. Backend Setup
+### Backend (.env)
 ```bash
+# Server Configuration
+PORT=3001
+NODE_ENV=production
+CLIENT_URL=https://your-frontend-url.com
+
+# Appwrite Configuration (for user authentication & database)
+APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
+APPWRITE_PROJECT_ID=your-appwrite-project-id
+APPWRITE_API_KEY=your-appwrite-api-key
+
+# GitHub Configuration (for repository operations)
+GITHUB_CLIENT_ID=your-github-client-id
+GITHUB_CLIENT_SECRET=your-github-client-secret
+GITHUB_REDIRECT_URI=https://your-backend-url.com/auth/github/callback
+JWT_SECRET=your-jwt-secret-for-github-sessions
+
+# AI & External Services
+LLAMA_API_KEY=your-novita-ai-api-key
+TAVILY_API_KEY=your-tavily-api-key
+MEM0_API_KEY=your-mem0-api-key
+KEYWORDS_AI_API_KEY=your-keywords-ai-api-key
+```
+
+## 🔐 Authentication Flow
+
+1. **User Authentication**: Handled entirely by Appwrite
+   - Email/Password signup and login
+   - GitHub OAuth (for user authentication)
+   - Google OAuth (optional)
+   - Session management and user profiles
+
+2. **GitHub Repository Access**: Separate from authentication
+   - Uses GitHub API with personal access tokens
+   - Required for repository discovery and cloning
+   - Enables access to private repositories
+
+## 📋 Setup Instructions
+
+### 1. Appwrite Setup
+1. Create an Appwrite project at [cloud.appwrite.io](https://cloud.appwrite.io)
+2. Enable Authentication providers:
+   - Email/Password
+   - GitHub OAuth (callback: `https://cloud.appwrite.io/v1/account/sessions/oauth2/callback/github`)
+   - Google OAuth (optional)
+3. Get your Project ID and API Key
+
+### 2. GitHub OAuth App (for repository access)
+1. Go to GitHub Developer Settings
+2. Create a new OAuth App with:
+   - Homepage URL: `https://your-frontend-url.com`
+   - Authorization callback URL: `https://your-backend-url.com/auth/github/callback`
+3. Get Client ID and Client Secret
+
+### 3. External API Keys
+- **Novita.ai**: For Llama 3 70B model access
+- **Tavily**: For real-time search and documentation
+- **Mem0**: For user memory and preferences
+- **Keywords AI**: For observability (optional)
+
+### 4. Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/your-repo/devpilot-ai.git
+cd devpilot-ai
+
+# Install backend dependencies
 cd server
 npm install
 
-# Create environment file
-cp .env.example .env
-# Edit .env with your API keys (see Configuration section)
-
-# Test the backend
-npm test
-
-# Start development server
-npm run dev
-```
-
-### 3. Frontend Setup
-```bash
+# Install frontend dependencies
 cd ../client
 npm install
 
-# Create environment file
-cp .env.example .env.local
-# Add your Appwrite configuration
+# Set up environment variables
+cp .env.example .env
+# Edit .env with your configuration
 
-# Start development server
+# Start the development servers
+# Backend
+cd server
+npm run dev
+
+# Frontend (in another terminal)
+cd client
 npm run dev
 ```
 
-### 4. Access the Application
-- Frontend: http://localhost:5173
-- Backend: http://localhost:3000 (if running standalone)
+## 🚀 Deployment
 
-## ⚙️ Configuration
-
-### Backend Environment Variables (.env)
+### Frontend (Vercel)
 ```bash
-# Required API Keys
-TAVILY_API_KEY=your_tavily_api_key_here
-MEM0_API_KEY=your_mem0_api_key_here
-KEYWORDS_AI_API_KEY=your_keywords_ai_api_key_here
-
-# Optional Configuration
-NODE_ENV=development
-PORT=3000
-KEYWORDS_AI_BASE_URL=https://api.keywordsai.co
-```
-
-### Frontend Environment Variables (.env.local)
-```bash
-# Appwrite Configuration
-VITE_APPWRITE_ENDPOINT=https://cloud.appwrite.io/v1
-VITE_APPWRITE_PROJECT_ID=your_appwrite_project_id
-
-# API Endpoint (if different from default)
-VITE_API_URL=http://localhost:3000
-```
-
-### Getting API Keys
-
-1. **Tavily API** (Documentation Search)
-   - Visit: https://tavily.com
-   - Sign up and get your API key from the dashboard
-
-2. **Mem0 API** (Memory Storage)
-   - Visit: https://mem0.ai
-   - Create account and get API key from dashboard
-
-3. **Keywords AI** (Observability - Optional)
-   - Visit: https://keywordsai.co
-   - Get API key for analytics and monitoring
-
-4. **Appwrite** (Authentication)
-   - Visit: https://appwrite.io
-   - Create project and configure OAuth providers
-
-## 🧪 Testing
-
-### Backend Tests
-```bash
-cd server
-npm test
-```
-
-The test suite includes:
-- ✅ React + Node.js application generation
-- ✅ Node.js API generation  
-- ✅ Python Flask application generation
-- ✅ Input validation
-- ✅ Error handling
-- ✅ Performance testing
-
-### Frontend Tests
-```bash
-cd client
-npm run build    # Test production build
-npm run lint     # Run linting
-```
-
-## 📦 Deployment
-
-### Backend Deployment
-
-#### Appwrite Cloud Functions
-```bash
-# Install Appwrite CLI
-npm install -g appwrite-cli
-
-# Login to Appwrite
-appwrite login
-
-# Deploy function
-appwrite functions createDeployment \
-  --functionId=your-function-id \
-  --entrypoint=appwrite.js \
-  --code=.
-```
-
-#### Docker Deployment
-```bash
-cd server
-docker build -t devpilot-backend .
-docker run -p 3000:3000 --env-file .env devpilot-backend
-```
-
-### Frontend Deployment
-
-#### Vercel (Recommended)
-```bash
-cd client
-npm install -g vercel
+# Deploy to Vercel
+npm run build
 vercel --prod
 ```
 
-#### Netlify
+### Backend (Render)
 ```bash
-cd client
-npm run build
-# Upload dist/ folder to Netlify
+# Deploy to Render
+# Connect your GitHub repository to Render
+# Set environment variables in Render dashboard
 ```
 
-#### Docker
-```bash
-cd client
-docker build -t devpilot-frontend .
-docker run -p 80:80 devpilot-frontend
-```
+## 🤖 Multi-Agent System
 
-## 🔌 API Reference
+The platform uses a sophisticated multi-agent system powered by LangGraph:
 
-### Generate CI/CD Configuration
+### Agent Workflow
+1. **Planner Agent**: Analyzes repository structure and creates execution plan
+2. **Analyzer Agent**: Detects tech stack, dependencies, and patterns
+3. **Generator Agent**: Creates optimized CI/CD files
+4. **Verifier Agent**: Validates configurations and suggests improvements
 
-**POST** `/api/generate`
+### Agent Communication
+- Agents communicate through a shared state graph
+- Real-time progress updates via WebSocket
+- Error handling and recovery mechanisms
+- Parallel execution where possible
 
-```json
-{
-  "repoUrl": "https://github.com/username/repository",
-  "techStack": "React + Node",
-  "userId": "user-unique-id"
-}
-```
+## 📊 Key Integrations
 
-**Response:**
-```json
-{
-  "dockerfile": "# Production Dockerfile content...",
-  "githubActions": "# CI/CD workflow YAML...",
-  "envExample": "# Environment variables...",
-  "docs": [
-    {
-      "title": "Deployment Guide",
-      "url": "https://...",
-      "content": "Guide description..."
-    }
-  ]
-}
-```
+### GitHub Integration
+- **Purpose**: Repository discovery, access, and cloning
+- **Scope**: `repo`, `user:email`
+- **Usage**: After Appwrite authentication, users can connect GitHub for repo access
 
-## 🛠️ Development
+### Appwrite Integration
+- **Purpose**: User authentication, session management, data storage
+- **Features**: Email/password auth, OAuth providers, user profiles
+- **Database**: Stores user preferences, project history, and settings
 
-### Project Structure
+### AI Services Integration
+- **Llama 3 70B**: Core reasoning and code analysis
+- **Tavily**: Real-time documentation and best practices
+- **Mem0**: Personalized recommendations based on user history
 
-#### Frontend (`/client`)
-- **Framework**: React 18 + TypeScript + Vite
-- **UI Library**: shadcn/ui + Tailwind CSS
-- **State Management**: React Query + Context API
-- **Authentication**: Appwrite
-- **Routing**: React Router
+## 🔍 API Endpoints
 
-#### Backend (`/server`)
-- **Runtime**: Node.js 18+
-- **APIs**: Tavily, Mem0, Keywords AI
-- **Architecture**: Cloud Functions compatible
-- **Testing**: Custom test harness
+### Authentication
+- `POST /auth/signup` - User registration
+- `POST /auth/login` - User login
+- `POST /auth/logout` - User logout
 
-### Adding New Tech Stacks
+### GitHub Operations
+- `GET /auth/github` - Initiate GitHub OAuth for repo access
+- `GET /auth/github/callback` - GitHub OAuth callback
+- `GET /api/github/repositories` - Get user repositories
+- `GET /api/github/organizations/:org/repositories` - Get org repositories
 
-1. Update `generateDockerfile()` in `server/index.js`
-2. Add corresponding CI/CD templates in `generateGitHubActions()`
-3. Update environment templates in `generateEnvExample()`
-4. Add tech stack option in frontend `TechStackSelector` component
-
-### Local Development Tips
-
-```bash
-# Run both frontend and backend
-npm run dev:all    # If you have concurrently installed
-
-# Or run separately
-cd server && npm run dev &
-cd client && npm run dev
-```
-
-## 🐛 Troubleshooting
-
-### Common Issues
-
-**Backend Tests Failing**
-- Ensure Node.js 18+ is installed
-- Check API keys in `.env` file
-- Run `npm install` in server directory
-
-**Frontend Build Errors**
-- Update browserslist: `npx update-browserslist-db@latest`
-- Clear node_modules: `rm -rf node_modules && npm install`
-- Check TypeScript errors: `npm run type-check`
-
-**Authentication Issues**
-- Verify Appwrite project configuration
-- Check OAuth provider settings
-- Ensure correct redirect URLs
-
-**API Rate Limits**
-- Tavily: 1000 requests/month free tier
-- Mem0: Check your quota in dashboard
-- Consider implementing request caching
+### AI Analysis
+- `POST /api/clone-repo` - Clone repository for analysis
+- `POST /api/analyze` - Run multi-agent analysis
+- `GET /api/analysis/:sessionId` - Get analysis results
+- `GET /api/files/:sessionId/:filename` - Download generated files
 
 ## 🤝 Contributing
 
 1. Fork the repository
-2. Create feature branch: `git checkout -b feature/new-feature`
-3. Commit changes: `git commit -am 'Add new feature'`
-4. Push to branch: `git push origin feature/new-feature`
-5. Submit pull request
-
-### Development Guidelines
-- Follow TypeScript best practices
-- Add tests for new features
-- Update documentation
-- Use conventional commit messages
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
 ## 📄 License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
-## 🙏 Acknowledgments
+## 🆘 Support
 
-- [Tavily](https://tavily.com) - AI-powered web search
-- [Mem0](https://mem0.ai) - Memory and context management
-- [Keywords AI](https://keywordsai.co) - Observability platform
-- [Appwrite](https://appwrite.io) - Backend-as-a-Service
-- [shadcn/ui](https://ui.shadcn.com) - UI component library
-
-## 📞 Support
-
-- 📧 Email: support@devpilotai.com
-- 🐛 Issues: [GitHub Issues](https://github.com/your-username/DevPilot/issues)
-- 💬 Discussions: [GitHub Discussions](https://github.com/your-username/DevPilot/discussions)
+For support and questions:
+- Create an issue on GitHub
+- Check the documentation
+- Review environment variable setup
 
 ---
 
-<div align="center">
-  <p>Built with ❤️ by the DevPilotAI team</p>
-  <p>⭐ Star us on GitHub if this project helped you!</p>
-</div> 
+Built with ❤️ using Appwrite, GitHub API, LangGraph, and modern web technologies. 

@@ -1,3 +1,27 @@
+/**
+ * GitHub API Service
+ * 
+ * This service handles GitHub repository operations AFTER user authentication.
+ * It is NOT used for user authentication (that's handled by Appwrite).
+ * 
+ * Purpose:
+ * - Connect to user's GitHub account for repository access
+ * - Fetch user's repositories and organizations
+ * - Clone repositories for AI analysis
+ * - Handle GitHub API interactions
+ * 
+ * Authentication Flow:
+ * 1. User logs in via Appwrite (email/password or OAuth)
+ * 2. User connects GitHub account through this service for repo access
+ * 3. GitHub token is used for repository operations only
+ * 
+ * Environment Variables Required:
+ * - GITHUB_CLIENT_ID: GitHub OAuth app client ID
+ * - GITHUB_CLIENT_SECRET: GitHub OAuth app client secret  
+ * - GITHUB_REDIRECT_URI: OAuth callback URL
+ * - JWT_SECRET: For signing GitHub session tokens
+ */
+
 import axios from 'axios';
 import jwt from 'jsonwebtoken';
 
