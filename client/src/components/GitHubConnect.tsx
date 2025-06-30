@@ -1,42 +1,24 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Github, Link2Off } from 'lucide-react';
-import { GitHubAPI } from '@/lib/api';
+import { useUser } from '@clerk/clerk-react';
 import { useToast } from '@/hooks/use-toast';
 
 export const GitHubConnect = () => {
-  const [connected, setConnected] = useState(false);
-  const [username, setUsername] = useState<string>();
-  const [loading, setLoading] = useState(true);
+  const { user } = useUser();
   const { toast } = useToast();
-
-  useEffect(() => {
-    const checkGitHubStatus = async () => {
-      try {
-        const status = await GitHubAPI.getGitHubAccountStatus();
-        setConnected(status.connected);
-        setUsername(status.username);
-      } catch (error) {
-        console.error('Failed to check GitHub status:', error);
-        toast({
-          title: 'Error',
-          description: 'Failed to check GitHub connection status',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    checkGitHubStatus();
-  }, [toast]);
+  
+  const githubOAuth = user?.externalAccounts.find(
+    account => account.provider === 'github'
+  );
 
   const handleConnect = async () => {
     try {
-      await GitHubAPI.connectGitHubAccount();
-      // The actual connection will be handled by OAuth redirect
-      window.location.href = `${import.meta.env.VITE_APPWRITE_FUNCTION_URL}/github/oauth`;
+      await user?.createExternalAccount({
+        strategy: "oauth_github",
+        redirect_url: "/select-repo",
+      });
     } catch (error) {
       console.error('Failed to connect GitHub:', error);
       toast({
@@ -49,13 +31,13 @@ export const GitHubConnect = () => {
 
   const handleDisconnect = async () => {
     try {
-      await GitHubAPI.disconnectGitHubAccount();
-      setConnected(false);
-      setUsername(undefined);
-      toast({
-        title: 'Success',
-        description: 'GitHub account disconnected successfully',
-      });
+      if (githubOAuth) {
+        await githubOAuth.destroy();
+        toast({
+          title: 'Success',
+          description: 'GitHub account disconnected successfully',
+        });
+      }
     } catch (error) {
       console.error('Failed to disconnect GitHub:', error);
       toast({
@@ -66,21 +48,7 @@ export const GitHubConnect = () => {
     }
   };
 
-  if (loading) {
-    return (
-      <Card>
-        <CardContent className="p-6">
-          <div className="animate-pulse flex space-x-4">
-            <div className="rounded-full bg-slate-200 h-10 w-10"></div>
-            <div className="flex-1 space-y-4 py-1">
-              <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-              <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+  if (!user) return null;
 
   return (
     <Card>
@@ -94,12 +62,12 @@ export const GitHubConnect = () => {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {connected ? (
+        {githubOAuth ? (
           <div className="space-y-4">
             <div className="flex items-center space-x-4">
               <div className="flex-1">
                 <p className="text-sm font-medium text-slate-900">Connected as</p>
-                <p className="text-sm text-slate-500">{username}</p>
+                <p className="text-sm text-slate-500">{githubOAuth.username}</p>
               </div>
               <Button
                 variant="outline"
