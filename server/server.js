@@ -9,6 +9,7 @@ import path from 'path';
 import { v4 as uuidv4 } from 'uuid';
 import { runAgentPipeline } from './agents/index.js';
 import GitHubService from './github.js';
+import AppwriteService from './appwrite.js';
 
 dotenv.config();
 
@@ -18,9 +19,11 @@ const io = new Server(server, {
   cors: {
     origin: [
       process.env.CLIENT_URL,           // deployed frontend URL (e.g., https://yourapp.web.app)
-      "http://localhost:5173"           // local development
+      "http://localhost:5173",          // local development
+      "https://dev-pilot.vercel.app"    // production frontend URL
     ],
-    methods: ["GET", "POST"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ['Content-Type', 'Authorization']
   }
 });
 
@@ -30,8 +33,14 @@ const TEMP_DIR = path.join(process.cwd(), 'temp');
 
 // Middleware
 app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:5173",
-  credentials: true
+  origin: [
+    process.env.CLIENT_URL,           // deployed frontend URL
+    "http://localhost:5173",          // local development
+    "https://dev-pilot.vercel.app"    // production frontend URL
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -617,6 +626,47 @@ setInterval(async () => {
     }
   }
 }, 60 * 60 * 1000); // Run every hour
+
+// Auth Routes
+app.post('/auth/signup', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Create user in Appwrite
+    const user = await AppwriteService.createUser(email, password);
+    
+    res.json({ success: true, user });
+  } catch (error) {
+    console.error('Signup error:', error);
+    res.status(400).json({ error: error.message || 'Failed to create user' });
+  }
+});
+
+app.post('/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+    
+    // Login user in Appwrite
+    const session = await AppwriteService.createSession(email, password);
+    
+    res.json({ success: true, session });
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(401).json({ error: error.message || 'Invalid credentials' });
+  }
+});
+
+app.post('/auth/logout', async (req, res) => {
+  try {
+    // Delete current session in Appwrite
+    await AppwriteService.deleteCurrentSession();
+    
+    res.json({ success: true });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({ error: error.message || 'Failed to logout' });
+  }
+});
 
 // Error handling middleware
 app.use((err, req, res, next) => {

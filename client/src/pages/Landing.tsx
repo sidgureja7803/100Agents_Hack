@@ -190,181 +190,145 @@ export const Landing = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-white">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-100">
       {/* Navigation */}
       <nav className="fixed top-0 w-full bg-white/95 backdrop-blur-lg border-b border-slate-200/60 z-50">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg">
-                <Bot className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 rounded-xl flex items-center justify-center shadow-lg animate-gradient">
+                <Bot className="h-6 w-6 text-white animate-pulse" />
               </div>
-              <div>
-                <span className="text-xl font-bold text-slate-900">DevPilotAI</span>
-                <div className="text-xs text-slate-600">Multi-Agent DevOps Platform</div>
-              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                DevPilotAI
+              </span>
             </div>
             
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center space-x-8">
-              <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">AI Agents</a>
-              <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Technology</a>
-              <a href="#workflow" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">How It Works</a>
-              <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Customers</a>
-              <Button variant="outline" onClick={() => navigate('/demo')} className="font-medium">
-                <Play className="h-4 w-4 mr-2" />
-                Live Demo
-              </Button>
-              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 font-medium">
-                Start Free Trial
+              <a href="#features" className="text-slate-600 hover:text-slate-900 transition-colors">Features</a>
+              <a href="#tech" className="text-slate-600 hover:text-slate-900 transition-colors">Tech Stack</a>
+              <a href="#testimonials" className="text-slate-600 hover:text-slate-900 transition-colors">Testimonials</a>
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white shadow-lg hover:shadow-xl transition-all duration-200"
+              >
+                Get Started
               </Button>
             </div>
             
             {/* Mobile Menu Button */}
-            <button 
-              className="md:hidden p-2 rounded-lg hover:bg-slate-100"
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            >
-              {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
-            </button>
+            <div className="md:hidden">
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              >
+                {mobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
+            </div>
           </div>
           
-          {/* Mobile Navigation */}
+          {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden mt-4 pb-4 border-t border-slate-200/60">
-              <div className="flex flex-col space-y-4 mt-4">
-                <a href="#features" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">AI Agents</a>
-                <a href="#tech" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Technology</a>
-                <a href="#workflow" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">How It Works</a>
-                <a href="#testimonials" className="text-slate-600 hover:text-purple-600 transition-colors font-medium">Customers</a>
-                <div className="flex flex-col space-y-2 pt-2">
-                  <Button variant="outline" onClick={() => navigate('/demo')} className="w-full">
-                    <Play className="h-4 w-4 mr-2" />
-                    Live Demo
-                  </Button>
-                  <Button onClick={() => navigate('/auth')} className="w-full bg-gradient-to-r from-purple-600 to-blue-600">
-                    Start Free Trial
-                  </Button>
-                </div>
-              </div>
+            <div className="md:hidden absolute top-full left-0 w-full bg-white border-b border-slate-200 py-4 px-4 space-y-4 shadow-lg animate-slideDown">
+              <a href="#features" className="block text-slate-600 hover:text-slate-900 transition-colors">Features</a>
+              <a href="#tech" className="block text-slate-600 hover:text-slate-900 transition-colors">Tech Stack</a>
+              <a href="#testimonials" className="block text-slate-600 hover:text-slate-900 transition-colors">Testimonials</a>
+              <Button 
+                onClick={() => navigate('/auth')}
+                className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white"
+              >
+                Get Started
+              </Button>
             </div>
           )}
         </div>
       </nav>
 
       {/* Hero Section */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-slate-900 via-purple-900 to-blue-900 pt-24">
-        <div className="absolute inset-0 opacity-20">
-          <div className="absolute inset-0" style={{
-            backgroundImage: "radial-gradient(circle at 1px 1px, rgba(147,197,253,0.15) 1px, transparent 0)",
-            backgroundSize: "30px 30px"
-          }}></div>
-        </div>
-        
-        <div className="container mx-auto px-4 py-20 relative">
-          <div className="max-w-6xl mx-auto text-center space-y-12">
-            <div className="inline-flex items-center space-x-3 bg-white/10 backdrop-blur-sm border border-white/20 rounded-full px-6 py-3">
-              <div className="flex items-center space-x-2">
-                <Bot className="h-5 w-5 text-cyan-400" />
-                <span className="text-white font-semibold">Powered by LangGraph + GPT-4</span>
-              </div>
-              <div className="w-1 h-4 bg-white/30 rounded-full"></div>
-              <Badge variant="secondary" className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white border-0 font-medium">
-                Multi-Agent AI
-              </Badge>
-            </div>
-            
-            <div className="space-y-8">
-              <h1 className="text-5xl md:text-7xl font-bold text-white leading-tight">
-                <span className="bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 bg-clip-text text-transparent">
-                  AI Agents
-                </span>
-                <br />
-                <span className="text-4xl md:text-6xl">That Build & Deploy</span>
-                <br />
-                <span className="text-3xl md:text-5xl text-slate-300">Everything</span>
-              </h1>
-              
-              <p className="text-xl md:text-2xl text-slate-300 max-w-4xl mx-auto leading-relaxed">
-                Revolutionary <span className="text-cyan-400 font-semibold">multi-agent AI system</span> that analyzes any codebase 
-                and generates production-ready CI/CD pipelines, infrastructure code, and deployment configurations 
-                in <span className="text-purple-400 font-semibold">under 60 seconds</span>.
-              </p>
-            </div>
-            
-            <div className="flex flex-col sm:flex-row gap-6 justify-center items-center">
-              <Button 
-                onClick={() => navigate('/auth')} 
-                size="lg"
-                className="bg-gradient-to-r from-cyan-500 to-blue-500 hover:from-cyan-600 hover:to-blue-600 text-white px-8 py-4 text-lg font-semibold shadow-2xl"
-              >
-                <Rocket className="mr-3 h-5 w-5" />
-                Launch AI Agents
-              </Button>
-              <Button 
-                variant="outline" 
-                size="lg"
-                onClick={() => navigate('/demo')}
-                className="border-white/30 text-white hover:bg-white/10 backdrop-blur-sm px-8 py-4 text-lg font-semibold"
-              >
-                <Play className="mr-3 h-5 w-5" />
-                Watch Demo
-              </Button>
-            </div>
-
-            {/* Technology Badges */}
-            <div className="flex flex-wrap justify-center gap-3 pt-8">
-              {['OpenAI GPT-4', 'LangGraph', 'Tavily', 'Mem0', 'Appwrite', 'Keywords AI'].map((tech) => (
-                <Badge key={tech} variant="secondary" className="bg-white/10 text-white border-white/20 font-medium px-3 py-1">
-                  {tech}
-                </Badge>
-              ))}
-            </div>
+      <section className="pt-32 pb-20 px-4">
+        <div className="container mx-auto text-center">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 via-blue-600/20 to-cyan-600/20 blur-3xl -z-10 rounded-full"></div>
+            <h1 className="text-5xl md:text-6xl font-bold text-slate-900 mb-6 leading-tight">
+              AI-Powered DevOps<br/>
+              <span className="bg-gradient-to-r from-purple-600 via-blue-600 to-cyan-600 bg-clip-text text-transparent">
+                Automation Platform
+              </span>
+            </h1>
+          </div>
+          <p className="text-xl text-slate-600 mb-8 max-w-2xl mx-auto">
+            Transform your development workflow with intelligent AI agents that understand, analyze, and optimize your codebase.
+          </p>
+          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+            <Button 
+              onClick={() => navigate('/auth')}
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white px-8 py-6 text-lg shadow-lg hover:shadow-xl transition-all duration-200"
+            >
+              Start Free Trial
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => navigate('/demo')}
+              className="w-full sm:w-auto border-2 border-slate-200 hover:border-slate-300 px-8 py-6 text-lg"
+            >
+              Watch Demo
+            </Button>
           </div>
         </div>
       </section>
 
       {/* Stats Section */}
-      <section className="py-16 bg-slate-50">
+      <section className="py-20 bg-gradient-to-br from-slate-50 to-white">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
             {stats.map((stat, index) => (
-              <div key={index} className="text-center">
-                <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-r from-purple-500 to-blue-500 rounded-xl mb-4">
-                  {stat.icon}
+              <div 
+                key={index}
+                className="bg-white rounded-2xl p-6 shadow-lg hover:shadow-xl transition-shadow duration-200 border border-slate-200/60 group"
+              >
+                <div className="flex items-center space-x-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/10 to-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-200">
+                    {React.cloneElement(stat.icon, { className: "h-6 w-6 text-purple-600" })}
+                  </div>
+                  <div>
+                    <div className="text-2xl font-bold text-slate-900">{stat.value}</div>
+                    <div className="text-sm text-slate-600">{stat.label}</div>
+                  </div>
                 </div>
-                <div className="text-3xl font-bold text-slate-900 mb-2">{stat.value}</div>
-                <div className="text-slate-600 font-medium">{stat.label}</div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* AI Agent Features */}
-      <section id="features" className="py-20 bg-white">
+      {/* Features Section */}
+      <section id="features" className="py-20">
         <div className="container mx-auto px-4">
-          <div className="text-center space-y-4 mb-16">
-            <h2 className="text-4xl md:text-5xl font-bold text-slate-900">
-              Multi-Agent <span className="bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">AI System</span>
+          <div className="text-center mb-16">
+            <h2 className="text-3xl md:text-4xl font-bold text-slate-900 mb-4">
+              Powered by Advanced AI Technology
             </h2>
-            <p className="text-xl text-slate-600 max-w-3xl mx-auto">
-              Four specialized AI agents work together using LangGraph to create optimal DevOps solutions
+            <p className="text-lg text-slate-600 max-w-2xl mx-auto">
+              Our multi-agent system combines cutting-edge AI models with enterprise-grade infrastructure.
             </p>
           </div>
-
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {features.map((feature, index) => (
-              <Card key={index} className="border-slate-200/60 hover:shadow-lg transition-all duration-300 group">
-                <CardHeader>
-                  <div className={`inline-flex w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    {feature.icon}
+              <Card 
+                key={index} 
+                className="group hover:shadow-xl transition-all duration-200 border-slate-200/60 overflow-hidden"
+              >
+                <CardContent className="p-6">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br ${feature.color} bg-opacity-10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-200`}>
+                    {React.cloneElement(feature.icon, { className: `h-6 w-6 text-${feature.color.split('-')[2]}` })}
                   </div>
-                  <CardTitle className="text-xl font-bold text-slate-900">{feature.title}</CardTitle>
-                  <Badge variant="outline" className="w-fit text-xs">{feature.tech}</Badge>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-slate-600 leading-relaxed">{feature.description}</p>
+                  <h3 className="text-xl font-semibold text-slate-900 mb-2">{feature.title}</h3>
+                  <p className="text-slate-600 mb-4">{feature.description}</p>
+                  <Badge variant="secondary" className="bg-slate-100 text-slate-600">
+                    {feature.tech}
+                  </Badge>
                 </CardContent>
               </Card>
             ))}
