@@ -4,7 +4,7 @@ services:
     name: devpilot-ai-backend
     env: node
     buildCommand: cd server && npm install
-    startCommand: cd server && node server.js
+    startCommand: cd server && node minimal.js
     plan: free
     envVars:
       - key: NODE_VERSION

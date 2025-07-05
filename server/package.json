@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node server.js",
     "start:debug": "node start.js",
+    "start:minimal": "node minimal.js",
     "test": "node test.js",
     "dev": "node --watch server.js",
     "install-deps": "npm install"
