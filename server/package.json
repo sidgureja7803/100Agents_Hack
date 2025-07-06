@@ -8,8 +8,10 @@
     "start:debug": "node start.js",
     "start:minimal": "node minimal.js",
     "test": "node test.js",
+    "test:render": "node test-render.js",
     "dev": "node --watch server.js",
-    "install-deps": "npm install"
+    "install-deps": "npm install",
+    "debug": "NODE_DEBUG=http,net node minimal.js"
   },
   "keywords": [
     "devops",
@@ -32,7 +34,8 @@
     "uuid": "^9.0.1",
     "axios": "^1.6.7",
     "jsonwebtoken": "^9.0.2",
-    "node-appwrite": "^11.1.0"
+    "node-appwrite": "^11.1.0",
+    "cookie-parser": "^1.4.6"
   },
   "type": "module",
   "engines": {

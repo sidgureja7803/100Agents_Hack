@@ -7,6 +7,7 @@ import { StatsOverview, defaultStats } from '@/components/dashboard/StatsOvervie
 import { GenerationForm } from '@/components/dashboard/GenerationForm';
 import { AgentGenerationForm } from '@/components/AgentGenerationForm';
 import { ProjectsGrid } from '@/components/dashboard/ProjectsGrid';
+import { SavedFiles } from '@/components/dashboard/SavedFiles';
 import { OutputDisplay } from '@/components/OutputDisplay';
 import { ChatPanel } from '@/components/ChatPanel';
 import { useAuth } from '@/contexts/AuthContext';
@@ -96,6 +97,9 @@ export const EnhancedDashboard = () => {
       setShowOutput(true);
       setShowChat(true);
       
+      // Store repo URL for "Save to Appwrite" functionality
+      localStorage.setItem('lastRepoUrl', repoUrl);
+      
       // Add to projects list
       const newProject: Project = {
         id: Date.now().toString(),
@@ -148,12 +152,13 @@ export const EnhancedDashboard = () => {
         {/* Stats Overview */}
         <StatsOverview />
 
-        {/* Main Dashboard Tabs */}
+                  {/* Main Dashboard Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-8">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="agents">🤖 AI Agents</TabsTrigger>
             <TabsTrigger value="generate">Generate CI/CD</TabsTrigger>
             <TabsTrigger value="projects">My Projects</TabsTrigger>
+            <TabsTrigger value="saved">Saved Files</TabsTrigger>
             <TabsTrigger value="analytics">Analytics</TabsTrigger>
           </TabsList>
 
@@ -201,10 +206,11 @@ export const EnhancedDashboard = () => {
               {showOutput && apiResponse && (
                 <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 animate-fade-in">
                   <div className="lg:col-span-2">
-                    <OutputDisplay 
-                      techStack="AI Generated Tech Stack"
-                      apiResponse={apiResponse}
-                    />
+                                    <OutputDisplay 
+                  techStack="AI Generated Tech Stack"
+                  apiResponse={apiResponse}
+                  repoUrl="AI Agent Analysis"
+                />
                   </div>
                   {showChat && (
                     <div className="lg:col-span-1">
@@ -231,6 +237,7 @@ export const EnhancedDashboard = () => {
                   <OutputDisplay 
                     techStack="Generated Tech Stack"
                     apiResponse={apiResponse}
+                    repoUrl={localStorage.getItem('lastRepoUrl') || ''}
                   />
                 </div>
                 {showChat && (
@@ -250,9 +257,12 @@ export const EnhancedDashboard = () => {
               onDownload={(id) => handleProjectAction('download', id)}
               onShare={(id) => handleProjectAction('share', id)}
               onDelete={(id) => handleProjectAction('delete', id)}
-              onRedeploy={(id) => handleProjectAction('redeploy', id)}
-              onConfigure={(id) => handleProjectAction('configure', id)}
             />
+          </TabsContent>
+          
+          {/* Saved Files Tab */}
+          <TabsContent value="saved">
+            <SavedFiles />
           </TabsContent>
 
           {/* Analytics Tab */}

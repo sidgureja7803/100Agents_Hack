@@ -2,18 +2,23 @@ import React, { useState } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Copy, Download, FileText, Settings, Play, Book } from 'lucide-react';
+import { Copy, Download, FileText, Settings, Play, Book, Save } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { DevPilotResponse } from '@/lib/api';
+import { AppwriteAPI, SaveToAppwriteRequest } from '@/lib/api';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface OutputDisplayProps {
   techStack: string;
   apiResponse: DevPilotResponse;
+  repoUrl?: string;
 }
 
-export const OutputDisplay = ({ techStack, apiResponse }: OutputDisplayProps) => {
+export const OutputDisplay = ({ techStack, apiResponse, repoUrl }: OutputDisplayProps) => {
   const { toast } = useToast();
+  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('dockerfile');
+  const [savingToAppwrite, setSavingToAppwrite] = useState<Record<string, boolean>>({});
 
   const copyToClipboard = (content: string, type: string) => {
     navigator.clipboard.writeText(content);
@@ -22,6 +27,45 @@ export const OutputDisplay = ({ techStack, apiResponse }: OutputDisplayProps) =>
       description: `${type} has been copied to your clipboard.`,
     });
   };
+  
+  const saveToAppwrite = async (content: string, name: string, type: string) => {
+    if (!user?.$id) {
+      toast({
+        title: "Authentication required",
+        description: "Please sign in to save files to Appwrite.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    try {
+      setSavingToAppwrite(prev => ({ ...prev, [type]: true }));
+      
+      const request: SaveToAppwriteRequest = {
+        userId: user.$id,
+        content,
+        name,
+        type,
+        repoUrl
+      };
+      
+      const response = await AppwriteAPI.saveToAppwrite(request);
+      
+      toast({
+        title: "Saved to Appwrite",
+        description: `${name} has been saved to your Appwrite storage.`,
+      });
+    } catch (error) {
+      console.error('Failed to save to Appwrite:', error);
+      toast({
+        title: "Save failed",
+        description: error instanceof Error ? error.message : "Failed to save to Appwrite",
+        variant: "destructive"
+      });
+    } finally {
+      setSavingToAppwrite(prev => ({ ...prev, [type]: false }));
+    }
+  };
 
   const tabs = [
     {
@@ -29,28 +73,32 @@ export const OutputDisplay = ({ techStack, apiResponse }: OutputDisplayProps) =>
       label: 'Dockerfile',
       icon: <Settings className="h-4 w-4" />,
       content: apiResponse.dockerfile,
-      description: 'Production-ready Docker configuration'
+      description: 'Production-ready Docker configuration',
+      fileName: 'Dockerfile'
     },
     {
       value: 'github-actions',
       label: 'GitHub Actions',
       icon: <Play className="h-4 w-4" />,
       content: apiResponse.githubActions,
-      description: 'Automated CI/CD workflow'
+      description: 'Automated CI/CD workflow',
+      fileName: '.github/workflows/ci.yml'
     },
     {
       value: 'env',
       label: '.env.example',
       icon: <FileText className="h-4 w-4" />,
       content: apiResponse.envExample,
-      description: 'Environment variables template'
+      description: 'Environment variables template',
+      fileName: '.env.example'
     },
     {
       value: 'docs',
       label: 'Documentation',
       icon: <Book className="h-4 w-4" />,
       content: apiResponse.docs,
-      description: 'Deployment instructions and best practices'
+      description: 'Deployment instructions and best practices',
+      fileName: 'README.md'
     }
   ];
 
@@ -98,13 +146,22 @@ export const OutputDisplay = ({ techStack, apiResponse }: OutputDisplayProps) =>
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
                         a.href = url;
-                        a.download = tab.value === 'docs' ? 'README.md' : tab.value === 'github-actions' ? '.github/workflows/ci.yml' : tab.value === 'env' ? '.env.example' : 'Dockerfile';
+                        a.download = tab.fileName;
                         a.click();
                         URL.revokeObjectURL(url);
                       }}
                     >
                       <Download className="h-4 w-4 mr-1" />
                       Download
+                    </Button>
+                    <Button 
+                      variant="outline"
+                      size="sm"
+                      onClick={() => saveToAppwrite(tab.content, tab.fileName, tab.value)}
+                      disabled={savingToAppwrite[tab.value]}
+                    >
+                      <Save className="h-4 w-4 mr-1" />
+                      {savingToAppwrite[tab.value] ? 'Saving...' : 'Save to Appwrite'}
                     </Button>
                   </div>
                 </div>

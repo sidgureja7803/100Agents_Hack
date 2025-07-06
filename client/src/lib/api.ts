@@ -36,6 +36,36 @@ export interface AnalyticsData {
 // API Base URL
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
 
+// Define interfaces for saving files to Appwrite
+export interface SaveToAppwriteRequest {
+  userId: string;
+  content: string;
+  name: string;
+  type: string;
+  repoUrl?: string;
+}
+
+export interface SaveToAppwriteResponse {
+  success: boolean;
+  message: string;
+  result: {
+    fileId: string;
+    recordId: string;
+    name: string;
+    type: string;
+  };
+}
+
+export interface SavedFile {
+  $id: string;
+  userId: string;
+  fileId: string;
+  name: string;
+  type: string;
+  repoUrl: string;
+  createdAt: string;
+}
+
 export class DevPilotAPI {
   private static async makeRequest(data: DevPilotRequest): Promise<DevPilotResponse> {
     try {
@@ -287,6 +317,68 @@ export class GitHubAPI {
     } catch (error) {
       console.error('Failed to get GitHub account status:', error);
       throw error;
+    }
+  }
+}
+
+export class AppwriteAPI {
+  static async saveToAppwrite(data: SaveToAppwriteRequest): Promise<SaveToAppwriteResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/save-to-appwrite`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      return response.json();
+    } catch (error) {
+      console.error('Failed to save to Appwrite:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to save to Appwrite');
+    }
+  }
+
+  static async getSavedFiles(userId: string): Promise<SavedFile[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/saved-files/${userId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.files;
+    } catch (error) {
+      console.error('Failed to fetch saved files:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to fetch saved files');
+    }
+  }
+
+  static async getFileDownloadUrl(fileId: string): Promise<string> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/api/file-download/${fileId}`, {
+        method: 'GET',
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const result = await response.json();
+      return result.downloadUrl;
+    } catch (error) {
+      console.error('Failed to get file download URL:', error);
+      throw new Error(error instanceof Error ? error.message : 'Failed to get file download URL');
     }
   }
 } 
