@@ -9,7 +9,8 @@ import { Landing } from '@/pages/Landing';
 import { Demo } from '@/pages/Demo';
 import { Auth } from '@/pages/Auth';
 import { NotFound } from '@/pages/NotFound';
-import { EnhancedDashboard } from '@/pages/EnhancedDashboard';
+import { ModernDashboard } from '@/pages/ModernDashboard';
+import { GitHubCallback } from '@/pages/GitHubCallback';
 import { RepoSelection } from '@/pages/RepoSelection';
 import AuthSuccess from '@/pages/AuthSuccess';
 
@@ -61,7 +62,8 @@ function App() {
             }
           >
             {/* Dashboard Routes */}
-            <Route path="/dashboard" element={<EnhancedDashboard />} />
+            <Route path="/dashboard" element={<ModernDashboard />} />
+            <Route path="/auth/github/callback" element={<GitHubCallback />} />
             <Route path="/select-repo" element={<RepoSelection />} />
             
             {/* Redirect /profile to /dashboard for now */}

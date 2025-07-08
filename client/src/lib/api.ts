@@ -34,7 +34,7 @@ export interface AnalyticsData {
 }
 
 // API Base URL
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:10000';
 
 // Define interfaces for saving files to Appwrite
 export interface SaveToAppwriteRequest {

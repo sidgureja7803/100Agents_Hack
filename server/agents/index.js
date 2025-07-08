@@ -7,9 +7,11 @@ class LlamaClient {
     this.baseURL = "https://api.novita.ai/v3/openai";
     this.apiKey = process.env.LLAMA_API_KEY;
     this.model = "meta-llama/llama-3-70b-instruct";
+    this.maxRetries = 3;
+    this.retryDelay = 1000;
   }
 
-  async invoke(messages) {
+  async invoke(messages, retryCount = 0) {
     try {
       const formattedMessages = messages.map(msg => ({
         role: msg._getType() === 'system' ? 'system' : 'user',
@@ -32,17 +34,42 @@ class LlamaClient {
       });
 
       if (!response.ok) {
-        throw new Error(`Llama API Error: ${response.status} ${response.statusText}`);
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`Llama API Error: ${response.status} ${response.statusText} - ${errorData.error?.message || 'Unknown error'}`);
       }
 
       const data = await response.json();
+      
+      if (!data.choices || !data.choices[0] || !data.choices[0].message) {
+        throw new Error('Invalid response format from Llama API');
+      }
+
       return {
-        content: data.choices[0].message.content
+        content: data.choices[0].message.content,
+        usage: data.usage
       };
     } catch (error) {
-      console.error('Llama API Error:', error);
+      console.error(`Llama API Error (attempt ${retryCount + 1}):`, error);
+      
+      // Retry logic for transient errors
+      if (retryCount < this.maxRetries && this.isRetryableError(error)) {
+        console.log(`Retrying in ${this.retryDelay}ms...`);
+        await new Promise(resolve => setTimeout(resolve, this.retryDelay));
+        return this.invoke(messages, retryCount + 1);
+      }
+      
       throw error;
     }
+  }
+
+  isRetryableError(error) {
+    // Retry on network errors, rate limits, and server errors
+    return error.message.includes('502') || 
+           error.message.includes('503') || 
+           error.message.includes('504') ||
+           error.message.includes('429') ||
+           error.message.includes('ECONNRESET') ||
+           error.message.includes('ETIMEDOUT');
   }
 }
 

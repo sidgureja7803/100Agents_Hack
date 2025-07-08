@@ -80,7 +80,7 @@ export const RepositorySelector: React.FC<RepositorySelectorProps> = ({
     setError(null);
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:10000';
       const endpoint = orgName 
         ? `/api/github/organizations/${orgName}/repositories?page=${page}&per_page=20`
         : `/api/github/repositories?page=${page}&per_page=20`;

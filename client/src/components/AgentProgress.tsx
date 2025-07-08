@@ -100,7 +100,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
 
   // Initialize Socket.IO connection
   useEffect(() => {
-    const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+    const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:10000';
     const newSocket = io(serverUrl);
     
     newSocket.on('connect', () => {
@@ -167,7 +167,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
   const getStatusIcon = (stepStatus: string) => {
     switch (stepStatus) {
       case 'completed':
-        return <CheckCircle className="h-5 w-5 text-green-600" />;
+        return <CheckCircle className="h-5 w-5 text-green-600 animate-pulse" />;
       case 'current':
         return <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />;
       case 'pending':
@@ -194,7 +194,7 @@ export const AgentProgress: React.FC<AgentProgressProps> = ({
     if (!sessionId) return;
     
     try {
-      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+      const serverUrl = import.meta.env.VITE_API_URL || 'http://localhost:10000';
       const response = await fetch(`${serverUrl}/api/files/${sessionId}`);
       
       if (!response.ok) {

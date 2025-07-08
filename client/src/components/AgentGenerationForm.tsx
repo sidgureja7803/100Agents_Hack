@@ -19,6 +19,7 @@ import {
   Key,
   Play,
   AlertCircle,
+  CheckCircle,
   Github
 } from 'lucide-react';
 import { AgentProgress } from './AgentProgress';
@@ -259,22 +260,35 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
                     <GitBranch className="h-4 w-4" />
                     <span>GitHub Repository URL</span>
                   </Label>
-                  <Input
-                    id="repo-url"
-                    placeholder="https://github.com/username/repository"
-                    value={repoUrl}
-                    onChange={handleUrlChange}
-                    disabled={isRunning}
-                    className={urlError ? 'border-red-300' : ''}
-                  />
+                  <div className="relative">
+                    <Input
+                      id="repo-url"
+                      placeholder="https://github.com/username/repository"
+                      value={repoUrl}
+                      onChange={handleUrlChange}
+                      disabled={isRunning}
+                      className={urlError ? 'border-red-300 pr-10' : isValidUrl ? 'border-green-300 pr-10' : ''}
+                    />
+                    {isValidUrl && (
+                      <CheckCircle className="absolute right-3 top-2.5 h-4 w-4 text-green-600" />
+                    )}
+                    {urlError && (
+                      <AlertCircle className="absolute right-3 top-2.5 h-4 w-4 text-red-600" />
+                    )}
+                  </div>
                   {urlError && (
-                    <p className="text-sm text-red-600">{urlError}</p>
+                    <Alert variant="destructive" className="mt-2">
+                      <AlertTriangle className="h-4 w-4" />
+                      <AlertDescription>{urlError}</AlertDescription>
+                    </Alert>
                   )}
                   {isValidUrl && (
-                    <p className="text-sm text-green-600 flex items-center space-x-1">
-                      <span>✓</span>
-                      <span>Valid GitHub repository URL</span>
-                    </p>
+                    <Alert className="mt-2 border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                      <AlertDescription className="text-green-800">
+                        Valid GitHub repository URL detected
+                      </AlertDescription>
+                    </Alert>
                   )}
                 </div>
 
@@ -285,14 +299,18 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
                       size="sm"
                       onClick={() => setUseAdvancedMode(!useAdvancedMode)}
                       disabled={isRunning}
+                      className="transition-all duration-200 hover:bg-gray-50"
                     >
                       <Settings className="h-4 w-4 mr-2" />
                       {useAdvancedMode ? 'Hide' : 'Show'} Advanced Options
                     </Button>
+                    <Badge variant="secondary" className="text-xs">
+                      For Private Repos
+                    </Badge>
                   </div>
 
                   {useAdvancedMode && (
-                    <div className="space-y-4 p-4 bg-gray-50 rounded-lg border">
+                    <div className="space-y-4 p-4 bg-gradient-to-r from-gray-50 to-blue-50 rounded-lg border border-blue-200 animate-in slide-in-from-top duration-300">
                       <div className="space-y-2">
                         <Label htmlFor="auth-token" className="flex items-center space-x-2">
                           <Key className="h-4 w-4" />
@@ -308,10 +326,22 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
                             // Handle auth token change
                           }}
                           disabled={isRunning}
+                          className="font-mono text-sm"
                         />
-                        <p className="text-xs text-gray-600">
-                          Required only for private repositories. Generate at GitHub Settings → Developer settings → Personal access tokens
-                        </p>
+                        <Alert className="mt-2">
+                          <Info className="h-4 w-4" />
+                          <AlertDescription className="text-sm">
+                            Required only for private repositories. Generate at{' '}
+                            <a 
+                              href="https://github.com/settings/tokens" 
+                              target="_blank" 
+                              rel="noopener noreferrer"
+                              className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                              GitHub Settings → Developer settings → Personal access tokens
+                            </a>
+                          </AlertDescription>
+                        </Alert>
                       </div>
                     </div>
                   )}
@@ -319,15 +349,27 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
 
                 <Separator />
 
-                <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                  <div className="flex items-center space-x-3">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg border border-purple-200">
                     <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
                       <Zap className="h-5 w-5 text-purple-600" />
                     </div>
                     <div>
-                      <h3 className="font-medium">AI-Powered Analysis</h3>
-                      <p className="text-sm text-gray-600">
-                        Multi-agent system will analyze your repository and generate production-ready CI/CD configurations
+                      <h3 className="font-medium text-purple-900">AI-Powered Analysis</h3>
+                      <p className="text-sm text-purple-700">
+                        Multi-agent system analyzes your repository
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-center space-x-3 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                    <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+                      <Github className="h-5 w-5 text-green-600" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium text-green-900">Production Ready</h3>
+                      <p className="text-sm text-green-700">
+                        Generates optimized CI/CD configurations
                       </p>
                     </div>
                   </div>
@@ -336,7 +378,7 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
                 <Button 
                   onClick={handleStartAnalysis}
                   disabled={!isValidUrl || isRunning}
-                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700"
+                  className="w-full bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white font-medium py-3 transition-all duration-200 transform hover:scale-105"
                   size="lg"
                 >
                   {isRunning ? (
@@ -351,6 +393,12 @@ export const AgentGenerationForm: React.FC<AgentGenerationFormProps> = ({
                     </>
                   )}
                 </Button>
+
+                {!isValidUrl && repoUrl && (
+                  <p className="text-sm text-gray-500 text-center">
+                    Please enter a valid GitHub repository URL to continue
+                  </p>
+                )}
               </div>
             </TabsContent>
             

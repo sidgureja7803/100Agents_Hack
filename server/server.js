@@ -10,6 +10,9 @@ import { v4 as uuidv4 } from 'uuid';
 import { runAgentPipeline } from './agents/index.js';
 import GitHubService from './github.js';
 import AppwriteService from './appwrite.js';
+import { logger } from './utils/logger.js';
+import { rateLimiters, securityHeaders, requestLogger } from './utils/security.js';
+import { performanceMonitor, getHealthStatus } from './utils/performance.js';
 
 dotenv.config();
 
@@ -42,8 +45,19 @@ app.use(cors({
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+
+// Security headers
+app.use(securityHeaders);
+
+// Request logging
+app.use(requestLogger);
+
+// Performance monitoring
+app.use(performanceMonitor.trackRequest.bind(performanceMonitor));
+
+// Body parsing
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // Cookie parser middleware (simple implementation)
 app.use((req, res, next) => {
@@ -105,7 +119,39 @@ function emitProgress(sessionId, data) {
 
 // Health check
 app.get('/health', (req, res) => {
-  res.json({ status: 'healthy', timestamp: new Date().toISOString() });
+  try {
+    const healthStatus = getHealthStatus();
+    res.json(healthStatus);
+  } catch (error) {
+    logger.error('Health check failed', error);
+    res.status(500).json({ 
+      status: 'unhealthy', 
+      error: error.message,
+      timestamp: new Date().toISOString() 
+    });
+  }
+});
+
+// Performance metrics endpoint
+app.get('/api/metrics', (req, res) => {
+  try {
+    const metrics = performanceMonitor.getMetrics();
+    res.json(metrics);
+  } catch (error) {
+    logger.error('Metrics retrieval failed', error);
+    res.status(500).json({ error: 'Failed to retrieve metrics' });
+  }
+});
+
+// Session analytics endpoint
+app.get('/api/analytics', (req, res) => {
+  try {
+    const analytics = performanceMonitor.getSessionAnalytics();
+    res.json(analytics);
+  } catch (error) {
+    logger.error('Analytics retrieval failed', error);
+    res.status(500).json({ error: 'Failed to retrieve analytics' });
+  }
 });
 
 // GitHub OAuth Routes
@@ -123,6 +169,64 @@ app.get('/auth/github', (req, res) => {
   } catch (error) {
     console.error('GitHub OAuth initiation error:', error);
     res.status(500).json({ error: 'Failed to initiate GitHub authentication' });
+  }
+});
+
+// GitHub OAuth callback (simplified)
+app.post('/api/github/callback', async (req, res) => {
+  try {
+    const { code } = req.body;
+    
+    if (!code) {
+      return res.status(400).json({ error: 'Authorization code is required' });
+    }
+
+    // Exchange code for access token
+    const tokenResponse = await fetch('https://github.com/login/oauth/access_token', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        client_id: process.env.GITHUB_CLIENT_ID,
+        client_secret: process.env.GITHUB_CLIENT_SECRET,
+        code: code,
+      }),
+    });
+
+    const tokenData = await tokenResponse.json();
+
+    if (tokenData.error) {
+      return res.status(400).json({ error: tokenData.error_description || 'Failed to get access token' });
+    }
+
+    // Get user info from GitHub
+    const userResponse = await fetch('https://api.github.com/user', {
+      headers: {
+        'Authorization': `token ${tokenData.access_token}`,
+        'Accept': 'application/vnd.github.v3+json',
+      },
+    });
+
+    const userData = await userResponse.json();
+
+    if (!userResponse.ok) {
+      return res.status(400).json({ error: 'Failed to get user information from GitHub' });
+    }
+
+    res.json({
+      success: true,
+      access_token: tokenData.access_token,
+      username: userData.login,
+      name: userData.name,
+      email: userData.email,
+      avatar_url: userData.avatar_url,
+    });
+
+  } catch (error) {
+    console.error('GitHub callback error:', error);
+    res.status(500).json({ error: 'Internal server error during GitHub authentication' });
   }
 });
 
@@ -175,7 +279,7 @@ app.get('/api/github/repositories', async (req, res) => {
     
     const token = authHeader.substring(7);
     const userData = GitHubService.verifyJWT(token);
-    const { page = 1, per_page = 50, type = 'all' } = req.query;
+    const { page = 1, per_page = 50 } = req.query;
     
     // Get user repositories
     const repositories = await GitHubService.getUserRepositories(
@@ -280,7 +384,7 @@ app.post('/api/github/verify-repo', async (req, res) => {
 });
 
 // Clone repository endpoint
-app.post('/api/clone-repo', async (req, res) => {
+app.post('/api/clone-repo', rateLimiters.clone, async (req, res) => {
   try {
     const { repoUrl, authToken, repositoryData } = req.body;
     let finalRepoUrl = repoUrl;
@@ -311,7 +415,7 @@ app.post('/api/clone-repo', async (req, res) => {
       }
       
       // Validate GitHub URL
-      const githubUrlPattern = /^https:\/\/github\.com\/[\w\-\.]+\/[\w\-\.]+(?:\.git)?$/;
+      const githubUrlPattern = /^https:\/\/github\.com\/[\w-.]+\/[\w-.]+(?:\.git)?$/;
       if (!githubUrlPattern.test(repoUrl)) {
         return res.status(400).json({ error: 'Invalid GitHub repository URL' });
       }
@@ -384,7 +488,7 @@ app.post('/api/clone-repo', async (req, res) => {
 });
 
 // Analyze repository endpoint
-app.post('/api/analyze', async (req, res) => {
+app.post('/api/analyze', rateLimiters.analysis, async (req, res) => {
   try {
     const { sessionId } = req.body;
     
@@ -598,7 +702,7 @@ app.get('/api/status/:sessionId', (req, res) => {
 // Enhanced DevPilot endpoint (integrates with agent system)
 app.post('/api/devpilot', async (req, res) => {
   try {
-    const { repoUrl, techStack, userId, useAgents = true } = req.body;
+    const { repoUrl, useAgents = true } = req.body;
     
     if (!repoUrl) {
       return res.status(400).json({ error: 'Repository URL is required' });
